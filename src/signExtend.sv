@@ -4,7 +4,7 @@ module signExtend (
 	
 	logic [15:0] tmp16;
 	
-	assign tmp16 = (in16[15]==1)? 4'hffff : 4'h0000;
+	assign tmp16 = (in16[15]==1)? 16'hffff : 16'h0000;
 	
 	assign out32 = {tmp16,in16};
 endmodule

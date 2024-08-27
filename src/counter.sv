@@ -6,17 +6,17 @@ module counter(
 	output logic save);
 
 
-	reg [2:0]contador;
+	reg [2:0]count;
 
 	always_ff @(posedge clk) begin
 		if (rst) begin
-			contador <= 0;
+			count <= 0;
 		end
 		else if (shift) begin
-			contador <= contador + 1;
+			count <= count + 1;
 		end
 	end
-	assign save = (contador == 3'b011)? 1:0 ;
-	assign done = (contador == 3'b100)? 1:0 ;
+	assign save = (count == 3'b011)? 1:0 ;
+	assign done = (count == 3'b100)? 1:0 ;
 
 endmodule

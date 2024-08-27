@@ -1,39 +1,80 @@
-module ALU(
-	input [3:0] alu_ctrl,
-	input [31:0] a,
-	input [31:0] b,
-	input clk,
-	input rst,
-	output logic [31:0] resultado,
-	output logic zero);
-	
+import mips_pkg::*;
 
-	logic [31:0] resTmp1;
-	logic [7:0] resMulti;
+`include "mips_header.svh"
 
-
-
+module ALU (
+    input logic [DATA_32_W - 1:0] alu_src_a,
+    input logic [DATA_32_W - 1:0] alu_src_b,
+    input t_alu_opcode alu_ctrl,
+    input logic alu_signed,
+    output logic [DATA_32_W - 1:0] alu_result,
+    output logic alu_zero,
+    output logic alu_slt
+);
 
 
-	parameter MULTI = 8;
-	
-	fullAdder SUMA (.A(a), .B(b), .resAdd(resTmp1), .add(alu_ctrl)); 											  	  //combi part of ALU
-	
-	multiplier mutiplier (.a(a), .b(b), .rstEx(rst), .clk(clk), .start(start), .out2(resMulti));			  //seq part of the ALU (multiplication)
-	
-	assign resultado = (alu_ctrl[3]==1)? resMulti : resTmp1;    													  //selector of combi and seq
-	
-	
-	always_comb begin 																											  //zero flag
-		if(alu_ctrl == 3) 
-			zero = 0;
-		else if (resultado == 0)
-			zero = 1;
-		else 
-			zero = 0;
-	end
-	
-	
+
+always_comb begin
+    case (alu_ctrl)
+        ALU_ADD                     : begin
+            alu_result = alu_src_a + alu_src_b;
+        end
+        ALU_SUB                     : begin
+            alu_result = alu_src_a - alu_src_b;
+        end
+        ALU_SLL              : begin
+            alu_result = alu_src_a << alu_src_b;
+        end
+        ALU_SLT           : begin         // This contains a conditional for checking if the op will be signed
+            if (alu_signed) begin
+                if ($signed(alu_src_a) < $signed(alu_src_b)) begin
+                    alu_result  = 'h1;
+                end
+                else begin
+                    alu_result  = 'h0;
+                end
+            end
+            else begin 
+                if (alu_src_a < alu_src_b) begin
+                    alu_result  = 'h1;
+                end
+                else begin
+                    alu_result  = 'h0;
+                end                
+            end
+        end
+        ALU_XOR                     : begin
+            alu_result = alu_src_a ^ alu_src_b;
+        end
+        ALU_SRL                     : begin
+            alu_result = alu_src_a  >> alu_src_b;
+        end
+        ALU_SRA                     : begin
+            alu_result = alu_src_a  >>> alu_src_b;
+        end
+        ALU_OR                      : begin
+            alu_result = alu_src_a | alu_src_b;
+        end
+        ALU_AND                     : begin
+            alu_result = alu_src_a & alu_src_b;
+        end 
+		ALU_ABS						: begin // Two's complement
+			alu_result = (alu_src_a[31] == 1'b1) ?
+							alu_src_a :
+							~alu_src_a +1;
+		end
+        default                     : begin
+            alu_result = 'hDEADBEEF;
+        end
+    endcase
+end
+
+always_comb begin
+    if (alu_signed) alu_slt = ($signed(alu_src_a) < $signed(alu_src_b)) ? 1'b1 : 1'b0;
+    else            alu_slt = (alu_src_a < alu_src_b)? 1'b1 : 1'b0;
+end
+
+assign alu_zero = ~(|alu_result);
+
+
 endmodule
-	
-	

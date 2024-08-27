@@ -1,7 +1,11 @@
+import mips_pkg::*;
+
+`include "mips_header.svh"
+
 module control (
-	input [5:0] instruction31_26,
-	input [5:0] instruction5_0,
-	output logic [3:0] alu_control,
+	input logic [5:0] instruction31_26,
+	input logic [5:0] instruction5_0,
+	output t_alu_opcode alu_control,
 	output logic RegDst,
 	output logic Branch,
 	output logic MemRead,
@@ -11,107 +15,98 @@ module control (
 	output logic RegWrite,
 	output logic Jump);
 
-	parameter zero 	= 0;
-	parameter ADD 		= 6'b100000;
-	parameter AND 		= 6'b100100;
-	parameter MULT 	  = 6'b011000;
-	parameter MULTU 	= 6'b011001;
-	parameter OR			= 6'b100101;
-	parameter SLT			= 6'b101010;
-	parameter SUB			= 6'b100010;
-	parameter XOR			= 6'b100110;
-
-
-	parameter ADDI		= 6'b001000;
-	parameter ADDIU		= 6'b001001;
-	parameter BEQ 		= 6'b000100;
-	parameter LW 			= 6'b100011;
-	parameter SW			= 6'b101011;
-	parameter JUMP		= 6'b000010;
-	parameter ABS			= 6'b100001;
+t_instr_pnmen instr_pnem;
 
 	always_comb begin
-	Jump 			= 0;
+	Jump		= 0;
 	RegDst		= 0;
-	RegWrite		= 0;
+	RegWrite	= 0;
 	ALUSrc		= 0;
-	alu_control	= 0;
-	MemWrite		= 0;
+	alu_control	= ALU_ADD;
+	MemWrite	= 0;
 	MemRead		= 0;
-	MemToReg		= 0;
+	MemToReg	= 0;
 	Branch		= 0;
+	instr_pnem = NEM_ZERO;
 		case(instruction31_26)
-			zero: begin
+			ZERO: begin
 				case(instruction5_0)
 					ADD: begin
 						RegDst		= 1;
-						RegWrite		= 1;
+						RegWrite	= 1;
 						ALUSrc		= 0;
-						alu_control	= 0;
-						MemWrite		= 0;
+						alu_control	= ALU_ADD;
+						MemWrite	= 0;
 						MemRead		= 0;
-						MemToReg		= 0;
+						MemToReg	= 0;
 						Branch		= 0;
+						instr_pnem = NEM_ADD;
 					end
 					AND: begin
 						RegDst		= 1;
 						RegWrite		= 1;
 						ALUSrc		= 0;
-						alu_control	= 4;
+						alu_control	= ALU_AND;
 						MemWrite		= 0;
 						MemRead		= 0;
 						MemToReg		= 0;
 						Branch		= 0;
+						instr_pnem = NEM_AND;
 					end
 					OR: begin
 						RegDst		= 1;
 						RegWrite		= 1;
 						ALUSrc		= 0;
-						alu_control	= 5;
+						alu_control	= ALU_OR;
 						MemWrite		= 0;
 						MemRead		= 0;
 						MemToReg		= 0;
 						Branch		= 0;
+						instr_pnem = NEM_OR;
 					end
 					SLT: begin
 						RegDst		= 1;
 						RegWrite		= 1;
 						ALUSrc		= 0;
-						alu_control	= 7;
+						alu_control	= ALU_SLT;
 						MemWrite		= 0;
 						MemRead		= 0;
 						MemToReg		= 0;
 						Branch		= 0;
+						instr_pnem = NEM_SLT;
 					end
 					SUB: begin
 						RegDst		= 1;
 						RegWrite		= 1;
 						ALUSrc		= 0;
-						alu_control	= 1;
+						alu_control	= ALU_SUB;
 						MemWrite		= 0;
 						MemRead		= 0;
 						MemToReg		= 0;
 						Branch		= 0;
+						instr_pnem = NEM_SUB;
 					end
 					XOR: begin
 						RegDst		= 1;
 						RegWrite		= 1;
 						ALUSrc		= 0;
-						alu_control	= 6;
+						alu_control	= ALU_XOR;
 						MemWrite		= 0;
 						MemRead		= 0;
 						MemToReg		= 0;
 						Branch		= 0;
+						instr_pnem = NEM_XOR;
 					end
-					zero: begin
+					ZERO: begin
 						RegDst		= 0;
 						RegWrite		= 0;
 						ALUSrc		= 0;
-						alu_control	= 3;
+						alu_control	= ALU_ADD;
 						MemWrite		= 0;
 						MemRead		= 0;
 						MemToReg		= 0;
 						Branch		= 0;
+						instr_pnem = NEM_ZERO;
 					end
 
 				endcase
@@ -120,72 +115,79 @@ module control (
 				RegDst		= 0;
 				RegWrite		= 1;
 				ALUSrc		= 1;
-				alu_control	= 0;
+				alu_control	= ALU_ADD;
 				MemWrite		= 0;
 				MemRead		= 0;
 				MemToReg		= 0;
 				Branch		= 0;
+				instr_pnem = NEM_ADDI;
 			end
 			ADDIU: begin
 				RegDst		= 0;
 				RegWrite		= 1;
 				ALUSrc		= 1;
-				alu_control	= 0;
+				alu_control	= ALU_ADD;
 				MemWrite		= 0;
 				MemRead		= 0;
 				MemToReg		= 0;
 				Branch		= 0;
+				instr_pnem = NEM_ADDIU;
 			end
 			BEQ: begin
 				RegDst		= 1'bx;
 				RegWrite		= 0;
 				ALUSrc		= 0;
-				alu_control	= 1;
+				alu_control	= ALU_SUB;
 				MemWrite		= 0;
 				MemRead		= 0;
 				MemToReg		= 1'bx;
 				Branch		= 1;
+				instr_pnem = NEM_BEQ;
 			end
 			LW: begin
 				RegDst		= 0;
 				RegWrite		= 1;
 				ALUSrc		= 1;
-				alu_control	= 0;
+				alu_control	= ALU_ADD;
 				MemWrite		= 0;
 				MemRead		= 1;
 				MemToReg		= 1;
 				Branch		= 0;
+				instr_pnem = NEM_LW;
 			end
 			SW: begin
 				RegDst		= 1'bx;
 				RegWrite		= 0;
 				ALUSrc		= 1;
-				alu_control	= 0;
+				alu_control	= ALU_ADD;
 				MemWrite		= 1;
 				MemRead		= 0;
 				MemToReg		= 1'bx;
 				Branch		= 0;
+				instr_pnem = NEM_SW;
 			end
 			JUMP: begin
 				RegDst		= 0;
 				RegWrite		= 0;
 				ALUSrc		= 0;
-				alu_control	= 0;
+				alu_control	= ALU_ADD;
 				MemWrite		= 0;
 				MemRead		= 0;
 				MemToReg		= 0;
 				Branch		= 0;
 				Jump			= 1;
+				instr_pnem = NEM_JUMP;
 			end
 			ABS: begin
 				RegDst		= 0;
 				RegWrite		= 1;
 				ALUSrc		= 0;
-				alu_control	= 2;
+				alu_control	= ALU_ABS;
 				MemWrite		= 0;
 				MemRead		= 0;
 				MemToReg		= 0;
 				Branch		= 0;
+				instr_pnem = NEM_ABS;
 			end
 		endcase
 	end
