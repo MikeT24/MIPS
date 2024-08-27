@@ -109,7 +109,7 @@ module MIPS_core (
 		.out32(signExt)
 	);
 
-	assign signExt_shift = {signExt[31:2], 2'h0};
+	assign signExt_shift = {signExt[29:0], 2'h0};
 
 	assign muxALUSrc = (ALUSrc)? signExt : ReadData2;
 
