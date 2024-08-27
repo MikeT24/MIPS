@@ -1,11 +1,11 @@
-module MIPS_tb2 ();
+module MIPS_tb_HW ();
   
   logic clk;
   logic rst;
   integer i;
   integer j;
 
-  MIPS uut(.clk(clk), .rst(rst));
+  MIPS_core uut(.clk(clk), .rst(rst));
   
   
   initial begin
@@ -13,66 +13,80 @@ module MIPS_tb2 ();
     clk = 0;
   #20;
   
-    
-    rst = 0;
-  #10;
-    for(j = 0; j<1024; j= j +1) begin
-      uut.DataMemory.regData[j] = 0;
+
+  // DATA MEMORY INITIALIZATION
+  for(j = 0; j<1024; j= j +1) begin
+      uut.DataMemory.data_mem_ff[j] = 0;
   end
-    
-    
-    uut.DataMemory.regData[0] = 0; 
-    uut.DataMemory.regData[1] = 10; 
-    uut.DataMemory.regData[2] = 9; 
-    uut.DataMemory.regData[3] = 8; 
-    uut.DataMemory.regData[4] = 7; 
-    uut.DataMemory.regData[5] = 6; 
-    uut.DataMemory.regData[6] = 5; 
-    uut.DataMemory.regData[7] = 4; 
-    uut.DataMemory.regData[8] = 3; 
-    uut.DataMemory.regData[9] = 2; 
-   
-   
+  
+  // INSTRUCTION DATA INITIALIZATION
   for(j = 0; j<512; j= j +1) begin
       uut.InstructionMemory.regData[j] = 0;
   end
   
+  // REG BANK INIT (PREVENTS X)
   for(j = 0; j<128; j= j +1) begin
       uut.RegBank.RegBank[j] = 0;
   end
-  #10;
-  uut.InstructionMemory.regData[0] = 0;  
-  uut.InstructionMemory.regData[1] = 2080;
-  uut.InstructionMemory.regData[2] = 604110857;
-  uut.InstructionMemory.regData[3] = 2351104000;
-  uut.InstructionMemory.regData[4] = 539033601;
-  uut.InstructionMemory.regData[5] = 2351169536;
-  uut.InstructionMemory.regData[6] = 8595498;
-  uut.InstructionMemory.regData[7] = 279052289;
-  uut.InstructionMemory.regData[8] = 8394784;
-  uut.InstructionMemory.regData[9] = 270663681;        //ADDI
-  uut.InstructionMemory.regData[10] = 134217732;
-  uut.InstructionMemory.regData[11] = 2887974917;      //ADDIU
-  uut.InstructionMemory.regData[12] = 0;
-  uut.InstructionMemory.regData[13] = 0;               //BEQ
-  uut.InstructionMemory.regData[14] = 0;
-  uut.InstructionMemory.regData[15] = 0;
-  uut.InstructionMemory.regData[16] = 0;
-  uut.InstructionMemory.regData[17] = 0;
-  uut.InstructionMemory.regData[18] = 0;
-  uut.InstructionMemory.regData[19] = 0;
-  uut.InstructionMemory.regData[21] = 0;
-  uut.InstructionMemory.regData[23] = 0;
+
+
+//STORED PROGRAM
+  uut.InstructionMemory.regData[0]  = 32'h00000000;  
+  uut.InstructionMemory.regData[1]  = 32'h00000820;
+  uut.InstructionMemory.regData[2]  = 32'h20020024;
+  uut.InstructionMemory.regData[3]  = 32'h8c230000;
+  uut.InstructionMemory.regData[4]  = 32'h20210004;
+  uut.InstructionMemory.regData[5]  = 32'h8c240000;
+  uut.InstructionMemory.regData[6]  = 32'h0083282a;
+  uut.InstructionMemory.regData[7]  = 32'h10a00001;
+  uut.InstructionMemory.regData[8]  = 32'h00801820;
+  uut.InstructionMemory.regData[9]  = 32'h10220001;
+  uut.InstructionMemory.regData[10] = 32'h08100004;
+  uut.InstructionMemory.regData[11] = 32'hac230004;
+  uut.InstructionMemory.regData[12] = 32'h20000000;
+  uut.InstructionMemory.regData[13] = 32'h0810000c;
+  uut.InstructionMemory.regData[14] = 32'h0;
+
+
 
   
     #40;
-    rst = 1;
-        
-    
+    rst = 0;
+
+  // DATA MEMORY EDIT
+    uut.DataMemory.data_mem_ff[0]   = 10; 
+    uut.DataMemory.data_mem_ff[1]   = 9; 
+    uut.DataMemory.data_mem_ff[2]   = 8; 
+    uut.DataMemory.data_mem_ff[3]   = 7;
+    uut.DataMemory.data_mem_ff[4]   = 6;
+    uut.DataMemory.data_mem_ff[5]   = 5;
+    uut.DataMemory.data_mem_ff[6]   = 4;
+    uut.DataMemory.data_mem_ff[7]   = 3;
+    uut.DataMemory.data_mem_ff[8]   = 2;
+    uut.DataMemory.data_mem_ff[9]   = 1;
+    uut.DataMemory.data_mem_ff[10]  = 0;
+    uut.DataMemory.data_mem_ff[11]  = 0;
+    uut.DataMemory.data_mem_ff[12]  = 0;
+
+
+    // uut.DataMemory.data_mem_ff[0]   = 0; 
+    // uut.DataMemory.data_mem_ff[1]   = 1; 
+    // uut.DataMemory.data_mem_ff[2]   = 2; 
+    // uut.DataMemory.data_mem_ff[3]   = 3;
+    // uut.DataMemory.data_mem_ff[4]   = 4;
+    // uut.DataMemory.data_mem_ff[5]   = 5;
+    // uut.DataMemory.data_mem_ff[6]   = 6;
+    // uut.DataMemory.data_mem_ff[7]   = 7;
+    // uut.DataMemory.data_mem_ff[8]   = 8;
+    // uut.DataMemory.data_mem_ff[9]   = 9;
+    // uut.DataMemory.data_mem_ff[10]  = 10;
+    // uut.DataMemory.data_mem_ff[11]  = 0;
+    // uut.DataMemory.data_mem_ff[12]  = 0;    
+
 end
   initial begin 
     forever #5 clk = ~clk;
   end
 endmodule
-2080
+
 

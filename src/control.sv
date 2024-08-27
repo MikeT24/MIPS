@@ -134,13 +134,13 @@ t_instr_pnmen instr_pnem;
 				instr_pnem = NEM_ADDIU;
 			end
 			BEQ: begin
-				RegDst		= 1'bx;
+				RegDst		= 1'b0;
 				RegWrite		= 0;
 				ALUSrc		= 0;
 				alu_control	= ALU_SUB;
 				MemWrite		= 0;
 				MemRead		= 0;
-				MemToReg		= 1'bx;
+				MemToReg		= 1'b0;
 				Branch		= 1;
 				instr_pnem = NEM_BEQ;
 			end
@@ -156,13 +156,13 @@ t_instr_pnmen instr_pnem;
 				instr_pnem = NEM_LW;
 			end
 			SW: begin
-				RegDst		= 1'bx;
+				RegDst		= 1'b0;
 				RegWrite		= 0;
 				ALUSrc		= 1;
 				alu_control	= ALU_ADD;
 				MemWrite		= 1;
 				MemRead		= 0;
-				MemToReg		= 1'bx;
+				MemToReg		= 1'b0;
 				Branch		= 0;
 				instr_pnem = NEM_SW;
 			end
