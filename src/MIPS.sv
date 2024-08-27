@@ -41,6 +41,8 @@ module MIPS_core (
 	logic [9:0] muxJump;	
 	logic [9:0] instructionJump;
 	
+	logic [31:0] signExt_shift;
+
 	// ONLY BEQ SUPPPORTED
 	assign beq_valid = (Branch & zero)? 1 : 0;					// Exclusive BEQ ONLY
 	assign MuxBranch = (beq_valid)? instructionC :  instructionB; // Branch Mux
@@ -107,7 +109,6 @@ module MIPS_core (
 		.out32(signExt)
 	);
 
-	logic [31:0] signExt_shift;
 	assign signExt_shift = {signExt[31:2], 2'h0};
 
 	assign muxALUSrc = (ALUSrc)? signExt : ReadData2;
@@ -132,7 +133,7 @@ module MIPS_core (
 		.rst(rst), 
 		.MemWrite(MemWrite), 
 		//.MemRead(MemRead), 
-		.Address(AddressData[9:0]), 
+		.Address(AddressData[$clog2(`DATA_MEM_DEPTH) - 1:0]), 
 		.WriteData(ReadData2), 
 		.ReadData(ReadDataMem)
 	);

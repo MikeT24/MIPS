@@ -7,7 +7,7 @@ module DataMemory #(
 )(
     input logic clk,
     input logic rst,
-    input [$clog2(DATA_32_W) - 1:0] Address,     // rs1,
+    input [$clog2(`DATA_MEM_DEPTH) - 1:0] Address,     // rs1,
     input logic MemWrite,              // mem_write
     input logic [DATA_32_W - 1:0] WriteData,
     output logic [DATA_32_W - 1:0] ReadData
