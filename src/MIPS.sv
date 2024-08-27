@@ -64,7 +64,7 @@ module MIPS_core (
  //	With the current PC Address
 
 	adderInstruction adder(
-		 .instructionB(instructionB),	// +4 Incrementer output
+		.instructionB(instructionB),	// +4 Incrementer output
 		.SignExtend(signExt_shift),			// Sign_extend shifted	
 		.instructionC(instructionC));	// Addition of both inputs
 	
@@ -122,7 +122,14 @@ module MIPS_core (
 		.alu_zero(zero)
 	);
 	
-	assign instructionJump = Instruction[9:0];
+	//....................... PC 31:28, INS_OFFSET 26:2
+	// At the moment PCOUT IS OUT OF BOUNDS, AS WE HAVE A SMALL MEMORY
+	// Commenting and using alternative
+
+	// assign instructionJump = {pcOut[31:28], Instruction[26:0],2'h0};
+	//not using pc address high bits
+	assign instructionJump = {4'h0, Instruction[26:0],2'h0};
+
 	assign muxMemToReg = (MemToReg)? ReadDataMem : AddressData;
 	
 	

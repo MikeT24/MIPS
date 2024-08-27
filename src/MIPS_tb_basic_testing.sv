@@ -69,7 +69,7 @@ module MIPS_tb_basic ();
   uut.InstructionMemory.regData[36] = 32'h00000000;
   uut.InstructionMemory.regData[37] = 32'h00000000;
   uut.InstructionMemory.regData[38] = 32'h22310001;
-  uut.InstructionMemory.regData[39] = 32'h08100025;
+  uut.InstructionMemory.regData[39] = 32'h08100026;
   uut.InstructionMemory.regData[40] = 32'h0;
 
 

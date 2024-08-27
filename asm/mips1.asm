@@ -32,8 +32,13 @@ abs $17, $15
 ori $17, $15, 1
 andi $17, $15, 1
 xori $17, $15, 1
+
 #sw $15, 0($15)
 #lw $17, 0($15)
+nop
+nop
+
+
 beq $zero, $1, HERE
 beq $1, $1, HERE 
 nop
