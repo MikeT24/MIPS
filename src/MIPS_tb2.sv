@@ -29,8 +29,7 @@ module MIPS_tb_HW ();
       uut.RegBank.RegBank[j] = 0;
   end
 
-
-//STORED PROGRAM
+  // STORED PROGRAM
   uut.InstructionMemory.regData[0]  = 32'h00000000;  
   uut.InstructionMemory.regData[1]  = 32'h00000820;
   uut.InstructionMemory.regData[2]  = 32'h20020024;
@@ -47,13 +46,10 @@ module MIPS_tb_HW ();
   uut.InstructionMemory.regData[13] = 32'h0810000c;
   uut.InstructionMemory.regData[14] = 32'h0;
 
-
-
   
     #40;
-    rst = 0;
-
-  // DATA MEMORY EDIT
+  // DATA MEMORY PRELOAD
+  // EDIT LINES BELOW FOR PRELOADING THE MEMORY
     uut.DataMemory.data_mem_ff[0]   = 10; 
     uut.DataMemory.data_mem_ff[1]   = 9; 
     uut.DataMemory.data_mem_ff[2]   = 8; 
@@ -68,20 +64,8 @@ module MIPS_tb_HW ();
     uut.DataMemory.data_mem_ff[11]  = 0;
     uut.DataMemory.data_mem_ff[12]  = 0;
 
+    rst = 0;
 
-    // uut.DataMemory.data_mem_ff[0]   = 0; 
-    // uut.DataMemory.data_mem_ff[1]   = 1; 
-    // uut.DataMemory.data_mem_ff[2]   = 2; 
-    // uut.DataMemory.data_mem_ff[3]   = 3;
-    // uut.DataMemory.data_mem_ff[4]   = 4;
-    // uut.DataMemory.data_mem_ff[5]   = 5;
-    // uut.DataMemory.data_mem_ff[6]   = 6;
-    // uut.DataMemory.data_mem_ff[7]   = 7;
-    // uut.DataMemory.data_mem_ff[8]   = 8;
-    // uut.DataMemory.data_mem_ff[9]   = 9;
-    // uut.DataMemory.data_mem_ff[10]  = 10;
-    // uut.DataMemory.data_mem_ff[11]  = 0;
-    // uut.DataMemory.data_mem_ff[12]  = 0;    
 
 end
   initial begin 
