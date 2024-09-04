@@ -123,18 +123,14 @@ module MIPS_core (
 	`MIKE_FF_RST(RegWrite_W, RegWrite_M, clk, rst) 
 	
 	// DECODE STAGE																			
-	logic [DATA_32_W-1:0] muxALUSrc_D;					//ALU SOURCE	
 	logic [DATA_32_W-1:0] signExt_D;					//Sign Extend
-	logic [DATA_32_W-1:0] AddressData_D;				//ALU result
-	logic [DATA_32_W-1:0] ReadDataMem_D;				//Data from data memory
 	logic [DATA_32_W-1:0] ReadData1_D;					//Read Data from RegBank
 	logic [DATA_32_W-1:0] ReadData2_D;					//Read Data from RegBank
 
-	logic [DATA_32_W-1:0] muxALUSrc_X;
+	logic [DATA_32_W-1:0] muxALUSrc_X;					//ALU SOURCE	
 	logic [DATA_32_W-1:0] signExt_X;
 	logic [REG_ADDR_W:0] muxWriteReg_X;					//Muxes for registers
-	logic [DATA_32_W-1:0] AddressData_X;
-	logic [DATA_32_W-1:0] ReadDataMem_X;
+	logic [DATA_32_W-1:0] AddressData_X;				//ALU result
 	logic [DATA_32_W-1:0] ReadData1_X;
 	logic [DATA_32_W-1:0] ReadData2_X;
 	
@@ -142,7 +138,7 @@ module MIPS_core (
 	logic [DATA_32_W-1:0] signExt_M;
 	logic [REG_ADDR_W:0] muxWriteReg_M;
 	logic [DATA_32_W-1:0] AddressData_M;
-	logic [DATA_32_W-1:0] ReadDataMem_M;
+	logic [DATA_32_W-1:0] ReadDataMem_M;				//Data from data memory
 	logic [DATA_32_W-1:0] ReadData1_M;
 	logic [DATA_32_W-1:0] ReadData2_M;
 
@@ -156,8 +152,6 @@ module MIPS_core (
 	logic [DATA_32_W-1:0] ReadData2_W;
 
 	`MIKE_FF_RST(signExt_X, signExt_D, clk, rst) 
-	`MIKE_FF_RST(AddressData_X, AddressData_D, clk, rst) 
-	`MIKE_FF_RST(ReadDataMem_X, ReadDataMem_D, clk, rst) 
 	`MIKE_FF_RST(ReadData1_X, ReadData1_D, clk, rst) 
 	`MIKE_FF_RST(ReadData2_X, ReadData2_D, clk, rst) 
 
@@ -165,7 +159,6 @@ module MIPS_core (
 	`MIKE_FF_RST(signExt_M, signExt_X, clk, rst) 
 	`MIKE_FF_RST(muxWriteReg_M, muxWriteReg_X, clk, rst) 
 	`MIKE_FF_RST(AddressData_M, AddressData_X, clk, rst) 
-	`MIKE_FF_RST(ReadDataMem_M, ReadDataMem_X, clk, rst) 
 	`MIKE_FF_RST(ReadData1_M, ReadData1_X, clk, rst) 
 	`MIKE_FF_RST(ReadData2_M, ReadData2_X, clk, rst) 
 
