@@ -5,6 +5,7 @@ import mips_pkg::*;
 module control (
 	input logic [5:0] instruction31_26,
 	input logic [5:0] instruction5_0,
+	input logic zero,
 	output t_alu_opcode alu_control,
 	output logic RegDst,
 	output logic Branch,
@@ -13,9 +14,19 @@ module control (
 	output logic MemWrite,
 	output logic ALUSrc,
 	output logic RegWrite,
-	output logic Jump);
+	output logic Jump,
+	output logic BeqValid
+);
 
+// Pnmemonic for the instruction
 t_instr_pnmen instr_pnem;
+
+
+// Branching logic 
+
+// ONLY BEQ SUPPPORTED
+assign BeqValid = (Branch & zero)? 1 : 0;					// Exclusive BEQ ONLY
+
 
 	always_comb begin
 	Jump		= 0;

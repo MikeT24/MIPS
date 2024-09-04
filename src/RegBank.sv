@@ -1,16 +1,22 @@
-module RegBank(
+import mips_pkg::*;
+
+`include "mips_header.svh"
+
+module RegBank #(    
+	parameter REG_FILE_DEPTH = 32
+)(
 	input clk,
 	input rst,
-	input [4:0] ReadReg1,
-	input [4:0] ReadReg2,
-	input [4:0] WriteReg,
+	input [REG_ADDR_W:0] ReadReg1,
+	input [REG_ADDR_W:0] ReadReg2,
+	input [REG_ADDR_W:0] WriteReg,
 	input RegWrite,
-	input [31:0] WriteData,
+	input [DATA_32_W-1:0] WriteData,
 	input done,
-	output logic [31:0] ReadData1,
-	output logic [31:0] ReadData2);
+	output logic [DATA_32_W-1:0] ReadData1,
+	output logic [DATA_32_W-1:0] ReadData2);
 
-	logic [31:0] RegBank [31:0];
+	logic [DATA_32_W-1:0] RegBank [REG_FILE_DEPTH-1:0];
 
 		assign ReadData1 = RegBank[ReadReg1];
 		assign ReadData2 = RegBank[ReadReg2];

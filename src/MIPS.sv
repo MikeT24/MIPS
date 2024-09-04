@@ -7,11 +7,11 @@ module MIPS_core (
 	input clk,
 	input rst);
 	
-	logic [9:0] MuxBranch;
-	logic [9:0] pcOut;
+	logic [ADDRESS_32_W-1:0] CurrPc_Branch;
+	logic [ADDRESS_32_W-1:0] pcOut;
 	
-	logic [9:0] instructionB;
-	logic [9:0] instructionC;
+	logic [ADDRESS_32_W-1:0] pcOut_plus4;
+	logic [ADDRESS_32_W-1:0] pcOut_Branch;
 	
 	t_alu_opcode alu_control;																	//temp variables control unit
 	logic RegDst;
@@ -24,63 +24,91 @@ module MIPS_core (
 	
 	logic zero;																				//zero flag from ALU
 	
-	logic [31:0] muxALUSrc;																	//ALU SOURCE	
-	logic [31:0] signExt;																	//Sign Extend
+	logic [DATA_32_W-1:0] muxALUSrc;																	//ALU SOURCE	
+	logic [DATA_32_W-1:0] signExt;																	//Sign Extend
 	
-	logic [4:0] muxWriteReg; 																//Muxes for registers
-	logic [31:0] muxMemToReg;																
-	logic [31:0] AddressData;																//ALU resultado
-	logic [31:0] ReadDataMem;																//Data from data memory
-	logic [31:0] ReadData1;																	//Read Data from RegBank
-	logic [31:0] ReadData2;
-	logic [31:0] Instruction;
-	logic beq_valid;
-	
+	logic [REG_ADDR_W:0] muxWriteReg; 																//Muxes for registers
+	logic [DATA_32_W-1:0] muxMemToReg;																
+	logic [DATA_32_W-1:0] AddressData;																//ALU resultado
+	logic [DATA_32_W-1:0] ReadDataMem;																//Data from data memory
+	logic [DATA_32_W-1:0] ReadData1;																	//Read Data from RegBank
+	logic [DATA_32_W-1:0] ReadData2;
+	logic [DATA_32_W-1:0] Instruction;
+	logic BeqValid;
 	logic Jump;
 	
-	logic [9:0] muxJump;	
-	logic [9:0] instructionJump;
+	logic [ADDRESS_32_W-1:0] CurrentAddress;	
+	logic [ADDRESS_32_W-1:0] CurrPc_Jump;
 	
-	logic [31:0] signExt_shift;
+	logic [ADDRESS_32_W-1:0] signExt_shift;
 
-	// ONLY BEQ SUPPPORTED
-	assign beq_valid = (Branch & zero)? 1 : 0;					// Exclusive BEQ ONLY
-	assign MuxBranch = (beq_valid)? instructionC :  instructionB; // Branch Mux
-	assign muxJump = (Jump)? instructionJump : MuxBranch;	// Jump Mux
-	
+	// ------------------------------------------------------
+	// CurrentAddress Selection 
+	// ------------------------------------------------------
+
+	// Muxes for Program Counter Jump
+	assign CurrPc_Branch = (BeqValid)? pcOut_Branch :  pcOut_plus4; // Branch Mux
+	assign CurrentAddress = (Jump)? CurrPc_Jump : CurrPc_Branch;	// Jump Mux
+
+
+	// ------------------------------------------------------
+	// Jump Address Generation
+	// ------------------------------------------------------	
+	// TODO: Should a MUX be added to tie to zero in case instruction is not a JUMP? 
+	assign CurrPc_Jump = {4'h0, Instruction[26:0],2'h0};
+
+	// ------------------------------------------------------
+	// Next Address INCREMENT 4
+	// ------------------------------------------------------	
+	// Instruction Address Increment by 4	
+	incrementer incrementer(			
+		.instruction(pcOut), 
+		.pcOut_plus4(pcOut_plus4));
+
+	// ------------------------------------------------------
+	// Branch Address Generation
+	// ------------------------------------------------------	
+ 	// Branch Instruction Adder
+ 	// This is adding the result of the immidiate sign extended, shifted by 2 value
+ 	//	With the current PC Address
+	adderInstruction adder(
+		.pcOut_plus4(pcOut_plus4),		// +4 Incrementer output
+		.SignExtend(signExt_shift),		// Sign_extend shifted	
+		.pcOut_Branch(pcOut_Branch));	// Addition of both inputs	
+
+	// ------------------------------------------------------
+	// Sign Extend
+	// ------------------------------------------------------	
+	assign signExt_shift = {signExt[29:0], 2'h0};
+
+
+	// ------------------------------------------------------
+	// PC Register
+	// ------------------------------------------------------	
 	pc programCounter(
 		.clk(clk), 
 		.rst(rst), 
-		.pcIn(muxJump), 
+		.pcIn(CurrentAddress), 
 		.pcOut(pcOut));
 	
-// Instruction Increment by 4	
-	incrementer incrementer(			
-		.instruction(pcOut), 
-		.instructionB(instructionB));
 
- // Branch Instruction Adder
- // This is adding the result of the immidiate sign extended, shifted by 2 value
- //	With the current PC Address
-
-	adderInstruction adder(
-		.instructionB(instructionB),	// +4 Incrementer output
-		.SignExtend(signExt_shift),			// Sign_extend shifted	
-		.instructionC(instructionC));	// Addition of both inputs
-	
-	// Instruction Memory 
+	// ------------------------------------------------------
+	// Instruction Memory
+	// ------------------------------------------------------	
 	InstructionMemory InstructionMemory(
 		.clk(clk), 
 		.Address(pcOut), 
 		.ReadData(Instruction), 
 		.rst(rst));
 
-
-	//Control logic
+	// ------------------------------------------------------
+	// Control logic
+	// ------------------------------------------------------	
 	control control(
 		.instruction31_26(Instruction[31:26]), 
 		.instruction5_0(Instruction[5:0]), 
 		.alu_control(alu_control), 
+		.zero(zero),
 		.RegDst(RegDst), 
 		.Branch(Branch), 
 		.MemRead(MemRead), 
@@ -88,11 +116,22 @@ module MIPS_core (
 		.MemWrite(MemWrite), 
 		.ALUSrc(ALUSrc), 
 		.RegWrite(RegWrite), 
-		.Jump(Jump));
+		.Jump(Jump),
+		.BeqValid(BeqValid)
+	);
 	
-	assign muxWriteReg = (RegDst)? Instruction[15:11] : Instruction[20:16];
+
+	// ------------------------------------------------------
+	// Data Muxes
+	// ------------------------------------------------------	
+	assign muxWriteReg	= (RegDst)?		Instruction[15:11] : Instruction[20:16];
+	assign muxALUSrc	= (ALUSrc)?		signExt : ReadData2;
+	assign muxMemToReg	= (MemToReg)?	ReadDataMem : AddressData;
+
 	
-	RegBank RegBank(
+	RegBank #(
+    	.REG_FILE_DEPTH(32)
+	) RegBank (
 		.clk(clk), 
 		.rst(rst), 
 		.ReadReg1(Instruction[25:21]), 
@@ -108,11 +147,6 @@ module MIPS_core (
 		.in16(Instruction[15:0]), 
 		.out32(signExt)
 	);
-
-	assign signExt_shift = {signExt[29:0], 2'h0};
-
-	assign muxALUSrc = (ALUSrc)? signExt : ReadData2;
-
 	
 	ALU ALU(
 		.alu_src_a(ReadData1), 
@@ -122,20 +156,9 @@ module MIPS_core (
 		.alu_zero(zero)
 	);
 	
-	//....................... PC 31:28, INS_OFFSET 26:2
-	// At the moment PCOUT IS OUT OF BOUNDS, AS WE HAVE A SMALL MEMORY
-	// Commenting and using alternative
-
-	// assign instructionJump = {pcOut[31:28], Instruction[26:0],2'h0};
-	//not using pc address high bits
-	assign instructionJump = {4'h0, Instruction[26:0],2'h0};
-
-	assign muxMemToReg = (MemToReg)? ReadDataMem : AddressData;
-	
-	
 	DataMemory #(
     .DATA_MEM_DEPTH(`DATA_MEM_DEPTH)
-	) DataMemory(
+	) DataMemory (
 		.clk(clk), 
 		.rst(rst), 
 		.MemWrite(MemWrite), 

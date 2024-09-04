@@ -1,8 +1,12 @@
+import mips_pkg::*;
+
+`include "mips_header.svh"
+
 module pc (
-	input [9:0] pcIn,
+	input [ADDRESS_32_W-1:0] pcIn,
 	input rst,
 	input clk,
-	output logic [9:0] pcOut);
+	output logic [ADDRESS_32_W-1:0] pcOut);
 	
 	always_ff @(posedge clk) begin
 		if (rst)
