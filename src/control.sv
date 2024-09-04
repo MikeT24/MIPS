@@ -1,11 +1,13 @@
 import mips_pkg::*;
 
 `include "mips_header.svh"
-
+// SUPPOSE ALL THE STAGES HERE ARE DECODE UNLESS NOTED EXPLICITLY
 module control (
+	input logic clk,
+	input logic rst,
 	input logic [5:0] instruction31_26,
 	input logic [5:0] instruction5_0,
-	input logic zero,
+	input logic zero_X,
 	output t_alu_opcode alu_control,
 	output logic RegDst,
 	output logic Branch,
@@ -15,17 +17,26 @@ module control (
 	output logic ALUSrc,
 	output logic RegWrite,
 	output logic Jump,
-	output logic BeqValid
+	output logic BeqValid_X
 );
 
 // Pnmemonic for the instruction
-t_instr_pnmen instr_pnem;
+t_instr_pnmen instr_pnem_D;
+t_instr_pnmen instr_pnem_X;
+t_instr_pnmen instr_pnem_M;
+t_instr_pnmen instr_pnem_W;
 
-
+logic Branch_X;
 // Branching logic 
 
 // ONLY BEQ SUPPPORTED
-assign BeqValid = (Branch & zero)? 1 : 0;					// Exclusive BEQ ONLY
+`MIKE_FF_RST(Branch_X, Branch, clk, rst) ;
+
+`MIKE_FF(instr_pnem_X, instr_pnem_D, clk) ;
+`MIKE_FF(instr_pnem_M, instr_pnem_X, clk) ;
+`MIKE_FF(instr_pnem_W, instr_pnem_M, clk) ;
+
+assign BeqValid_X = (Branch_X & zero_X)?  1'b1 : 1'b0;					// Exclusive BEQ ONLY
 
 
 	always_comb begin
@@ -38,7 +49,7 @@ assign BeqValid = (Branch & zero)? 1 : 0;					// Exclusive BEQ ONLY
 	MemRead		= 0;
 	MemToReg	= 0;
 	Branch		= 0;
-	instr_pnem = NEM_ZERO;
+	instr_pnem_D = NEM_ZERO;
 		case(instruction31_26)
 			ZERO: begin
 				case(instruction5_0)
@@ -51,7 +62,7 @@ assign BeqValid = (Branch & zero)? 1 : 0;					// Exclusive BEQ ONLY
 						MemRead		= 0;
 						MemToReg	= 0;
 						Branch		= 0;
-						instr_pnem = NEM_ADD;
+						instr_pnem_D = NEM_ADD;
 					end
 					AND: begin
 						RegDst		= 1;
@@ -62,7 +73,7 @@ assign BeqValid = (Branch & zero)? 1 : 0;					// Exclusive BEQ ONLY
 						MemRead		= 0;
 						MemToReg		= 0;
 						Branch		= 0;
-						instr_pnem = NEM_AND;
+						instr_pnem_D = NEM_AND;
 					end
 					OR: begin
 						RegDst		= 1;
@@ -73,7 +84,7 @@ assign BeqValid = (Branch & zero)? 1 : 0;					// Exclusive BEQ ONLY
 						MemRead		= 0;
 						MemToReg		= 0;
 						Branch		= 0;
-						instr_pnem = NEM_OR;
+						instr_pnem_D = NEM_OR;
 					end
 					SLT: begin
 						RegDst		= 1;
@@ -84,7 +95,7 @@ assign BeqValid = (Branch & zero)? 1 : 0;					// Exclusive BEQ ONLY
 						MemRead		= 0;
 						MemToReg		= 0;
 						Branch		= 0;
-						instr_pnem = NEM_SLT;
+						instr_pnem_D = NEM_SLT;
 					end
 					SUB: begin
 						RegDst		= 1;
@@ -95,7 +106,7 @@ assign BeqValid = (Branch & zero)? 1 : 0;					// Exclusive BEQ ONLY
 						MemRead		= 0;
 						MemToReg		= 0;
 						Branch		= 0;
-						instr_pnem = NEM_SUB;
+						instr_pnem_D = NEM_SUB;
 					end
 					XOR: begin
 						RegDst		= 1;
@@ -106,7 +117,7 @@ assign BeqValid = (Branch & zero)? 1 : 0;					// Exclusive BEQ ONLY
 						MemRead		= 0;
 						MemToReg		= 0;
 						Branch		= 0;
-						instr_pnem = NEM_XOR;
+						instr_pnem_D = NEM_XOR;
 					end
 					ZERO: begin
 						RegDst		= 0;
@@ -117,7 +128,7 @@ assign BeqValid = (Branch & zero)? 1 : 0;					// Exclusive BEQ ONLY
 						MemRead		= 0;
 						MemToReg		= 0;
 						Branch		= 0;
-						instr_pnem = NEM_ZERO;
+						instr_pnem_D = NEM_ZERO;
 					end
 
 				endcase
@@ -131,7 +142,7 @@ assign BeqValid = (Branch & zero)? 1 : 0;					// Exclusive BEQ ONLY
 				MemRead		= 0;
 				MemToReg		= 0;
 				Branch		= 0;
-				instr_pnem = NEM_ADDI;
+				instr_pnem_D = NEM_ADDI;
 			end
 			ADDIU: begin
 				RegDst		= 0;
@@ -142,7 +153,7 @@ assign BeqValid = (Branch & zero)? 1 : 0;					// Exclusive BEQ ONLY
 				MemRead		= 0;
 				MemToReg		= 0;
 				Branch		= 0;
-				instr_pnem = NEM_ADDIU;
+				instr_pnem_D = NEM_ADDIU;
 			end
 			BEQ: begin
 				RegDst		= 1'b0;
@@ -153,7 +164,7 @@ assign BeqValid = (Branch & zero)? 1 : 0;					// Exclusive BEQ ONLY
 				MemRead		= 0;
 				MemToReg		= 1'b0;
 				Branch		= 1;
-				instr_pnem = NEM_BEQ;
+				instr_pnem_D = NEM_BEQ;
 			end
 			LW: begin
 				RegDst		= 0;
@@ -164,7 +175,7 @@ assign BeqValid = (Branch & zero)? 1 : 0;					// Exclusive BEQ ONLY
 				MemRead		= 1;
 				MemToReg		= 1;
 				Branch		= 0;
-				instr_pnem = NEM_LW;
+				instr_pnem_D = NEM_LW;
 			end
 			SW: begin
 				RegDst		= 1'b0;
@@ -175,7 +186,7 @@ assign BeqValid = (Branch & zero)? 1 : 0;					// Exclusive BEQ ONLY
 				MemRead		= 0;
 				MemToReg		= 1'b0;
 				Branch		= 0;
-				instr_pnem = NEM_SW;
+				instr_pnem_D = NEM_SW;
 			end
 			JUMP: begin
 				RegDst		= 0;
@@ -187,7 +198,7 @@ assign BeqValid = (Branch & zero)? 1 : 0;					// Exclusive BEQ ONLY
 				MemToReg		= 0;
 				Branch		= 0;
 				Jump			= 1;
-				instr_pnem = NEM_JUMP;
+				instr_pnem_D = NEM_JUMP;
 			end
 			ABS: begin
 				RegDst		= 0;
@@ -198,7 +209,7 @@ assign BeqValid = (Branch & zero)? 1 : 0;					// Exclusive BEQ ONLY
 				MemRead		= 0;
 				MemToReg		= 0;
 				Branch		= 0;
-				instr_pnem = NEM_ABS;
+				instr_pnem_D = NEM_ABS;
 			end
 		endcase
 	end
