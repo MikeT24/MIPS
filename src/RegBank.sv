@@ -5,14 +5,14 @@ import mips_pkg::*;
 module RegBank #(    
 	parameter REG_FILE_DEPTH = 32
 )(
-	input clk,
-	input rst,
-	input [REG_ADDR_W:0] ReadReg1,
-	input [REG_ADDR_W:0] ReadReg2,
-	input [REG_ADDR_W:0] WriteReg,
-	input RegWrite,
-	input [DATA_32_W-1:0] WriteData,
-	input done,
+	input logic clk,
+	input logic rst,
+	input logic [REG_ADDR_W-1:0] ReadReg1,
+	input logic [REG_ADDR_W-1:0] ReadReg2,
+	input logic [REG_ADDR_W-1:0] WriteReg,
+	input logic RegWrite,
+	input logic [DATA_32_W-1:0] WriteData,
+	input logic done,
 	output logic [DATA_32_W-1:0] ReadData1,
 	output logic [DATA_32_W-1:0] ReadData2);
 
