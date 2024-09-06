@@ -29,14 +29,16 @@ t_instr_pnmen instr_pnem_W;
 logic Branch_X;
 // Branching logic 
 
-// ONLY BEQ SUPPPORTED
-`MIKE_FF_RST(Branch_X, Branch, clk, rst) ;
 
+// Instruction Pnemonic
 `MIKE_FF(instr_pnem_X, instr_pnem_D, clk) ;
 `MIKE_FF(instr_pnem_M, instr_pnem_X, clk) ;
 `MIKE_FF(instr_pnem_W, instr_pnem_M, clk) ;
 
-assign BeqValid_X = (Branch_X & zero_X)?  1'b1 : 1'b0;					// Exclusive BEQ ONLY
+// ONLY BEQ SUPPPORTED
+`MIKE_FF_RST(Branch_X, Branch, clk, rst) ;
+// ONLY BEQ SUPPPORTED
+assign BeqValid_X = (Branch_X & zero_X)?  1'b1 : 1'b0;					
 
 
 	always_comb begin

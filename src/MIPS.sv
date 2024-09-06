@@ -133,6 +133,11 @@ module MIPS_core (
 	logic [DATA_32_W-1:0] AddressData_X;				//ALU result
 	logic [DATA_32_W-1:0] ReadData1_X;
 	logic [DATA_32_W-1:0] ReadData2_X;
+
+	// DATA FWD
+	logic [DATA_32_W-1:0] ReadData1_toAluMux_X;
+	logic [DATA_32_W-1:0] ReadData2_toAluMux_X;
+	logic [DATA_32_W-1:0] ReadData2_toAluMux_M;
 	
 	logic [DATA_32_W-1:0] muxALUSrc_M;
 	logic [DATA_32_W-1:0] signExt_M;
@@ -300,8 +305,8 @@ module MIPS_core (
 	// 	else			muxWriteReg_X = Instruction_X[20:16];
 	// end
 	assign muxWriteReg_X	= (RegDst_X)?		Instruction_X[15:11] : Instruction_X[20:16];
-	assign muxALUSrc_X		= (ALUSrc_X)?		signExt_X : ReadData2_X;
-	assign muxMemToReg_W	= (MemToReg_W)?	ReadDataMem_W : AddressData_W;
+	assign muxALUSrc_X		= (ALUSrc_X)?		signExt_X : ReadData2_toAluMux_X;  //ReadData2_toAluMux_X --> Comes from DATA_FWD
+	assign muxMemToReg_W	= (MemToReg_W)?		ReadDataMem_W : AddressData_W;
 
 	
 	RegBank #(
@@ -309,13 +314,13 @@ module MIPS_core (
 	) RegBank (
 		.clk(clk), 
 		.rst(rst), 
-		.ReadReg1(Instruction_D[25:21]),	//Register is read in D   
-		.ReadReg2(Instruction_D[20:16]),	//Register is read in D   
-		.WriteReg(muxWriteReg_W),	//Register is written in WB  
-		.RegWrite(RegWrite_W),		//Register is written in WB 
-		.WriteData(muxMemToReg_W),	//Register is written in WB  
-		.ReadData1(ReadData1_D),	//Register is read in D  
-		.ReadData2(ReadData2_D)		//Register is read in D  
+		.reg_file_rd_addr_1(Instruction_D[25:21]),	//Register is read in D   
+		.reg_file_rd_addr_2(Instruction_D[20:16]),	//Register is read in D   
+		.reg_file_wr_addr(muxWriteReg_W),	//Register is written in WB  
+		.reg_file_write(RegWrite_W),		//Register is written in WB 
+		.reg_file_wr_data(muxMemToReg_W),	//Register is written in WB  
+		.reg_file_rd_data_1(ReadData1_D),	//Register is read in D  
+		.reg_file_rd_data_2(ReadData2_D)		//Register is read in D  
 	);
 	
 	signExtend signExtend(
@@ -324,7 +329,7 @@ module MIPS_core (
 	);
 	
 	ALU ALU(
-		.alu_src_a(ReadData1_X), 
+		.alu_src_a(ReadData1_toAluMux_X),   // DATA INPUT A TO ALU --> COMES FROM DATA_FWD UNIT
 		.alu_src_b(muxALUSrc_X), 
 		.alu_ctrl(alu_control_X), 
 		.alu_result(AddressData_X), 
@@ -339,8 +344,45 @@ module MIPS_core (
 		.MemWrite(MemWrite_M), 
 		//.MemRead(MemRead), 
 		.Address(AddressData_M[$clog2(`DATA_MEM_DEPTH) - 1:0]), 
-		.WriteData(ReadData2_M), 
+		.WriteData(ReadData2_toAluMux_M), 	// DATA WRITTEN TO MEMORY --> ReadData2 from the register COMMING FROM DATA FWD
 		.ReadData(ReadDataMem_M)
+	);
+
+
+
+	// ------------------------------------------------------
+	// Data Forwarding Unit
+	// ------------------------------------------------------	
+	mips_data_fwd mips_data_fwd(
+		.clk(clk),
+		.rst(rst),
+		.rs1_e(Instruction_D[25:21]),
+		.rs2_e(Instruction_D[20:16]),
+		.rsd_e(rsd_e),
+		.rsd_m(rsd_m),
+		.rsd_w(rsd_w),
+		.reg_file_rd_data_1_e(ReadData1_X),
+		.reg_file_rd_data_2_e(ReadData2_X),
+		.reg_file_2_alu_1_e(ReadData1_toAluMux_X),
+		.reg_file_2_alu_2_e(ReadData2_toAluMux_X),
+		.reg_file_2_alu_2_m(ReadData2_toAluMux_M), // FLOPPED TO DATA MEMORY
+		.alu_result_m(muxWriteReg_M),
+		.alu_result_w(muxWriteReg_W),
+		.data_mem_rd_data_m(ReadDataMem_M),
+		.data_mem_rd_data_w(ReadDataMem_W),
+		.intr_opcode_d(instr_pnem_D),
+		.intr_opcode_e(instr_pnem_X),
+		.intr_opcode_m(instr_pnem_M),
+		.intr_opcode_w(instr_pnem_W),
+		.reg_write_e(RegWrite_X),
+		.reg_write_m(RegWrite_M),
+		.reg_write_w(RegWrite_W),
+		.reg_write_hzd_free_m(RegWrite_M),
+		.reg_write_hzd_free_w(RegWrite_W),
+		.reg_write_hzd_free_w_plus1('b0), //TODO: DOUBLE CHECK
+		.data_mem_bus_rd_data_m(ReadDataMem_M),
+		.data_mem_bus_rd_data_w(ReadDataMem_W),
+		.data_mem_bus_rd_data_w_plus1('b0) //TODO: DOUBLE CHECK
 	);
 	
 endmodule
