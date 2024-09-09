@@ -68,7 +68,7 @@ always_comb begin
         if ((intr_opcode_m != NEM_LW)) begin 
             reg_file_2_alu_1_e = alu_result_m; // fwd from WB
         end
-        else begin 
+        else begin // Logic to prevent stalling in load2use
             reg_file_2_alu_1_e = data_mem_bus_rd_data_m; // fwd from WB
         end
     end
@@ -77,7 +77,7 @@ always_comb begin
         if ((intr_opcode_w != NEM_LW)) begin 
             reg_file_2_alu_1_e = alu_result_w; // fwd from WB
         end
-        else begin 
+        else begin // Logic to prevent stalling in load2use
             reg_file_2_alu_1_e = data_mem_bus_rd_data_w; // fwd from WB
         end
     end
@@ -102,7 +102,7 @@ always_comb begin
         if ((intr_opcode_m != NEM_LW)) begin 
             reg_file_2_alu_2_e = alu_result_m; // fwd from WB
         end
-        else begin 
+        else begin // Logic to prevent stalling in load2use
             reg_file_2_alu_2_e = data_mem_bus_rd_data_m; // fwd from WB
         end
     end
@@ -111,7 +111,7 @@ always_comb begin
         if ((intr_opcode_w != NEM_LW)) begin 
             reg_file_2_alu_2_e = alu_result_w; // fwd from WB
         end
-        else begin 
+        else begin // Logic to prevent stalling in load2use
             reg_file_2_alu_2_e = data_mem_bus_rd_data_w; // fwd from WB
         end
     end

@@ -23,42 +23,28 @@ sll $31, $16, 16
 
 ## CHECK DATA MEMORY CONTROLLER
 sw $15, 0($31)
-lw $14, 0($31)
-##USE CASE OF DATA FORWARDING 
-add $1, $2, $2
-add $4, $1, $5
-add $6, $1, $7
-add $8, $1, $9
-add $4, $1, $5
-
-
-## SECOND USE CASE
-add $1, $1, $2
-add $1, $1, $3
-add $1, $1, $4
-
-
-
-
-or $17, $1, $15
-and $17, $1, $15
-slt $17, $1, $3
-slt $17, $3, $1
-sub $17, $15, $14
-xor $17, $1, $15
-srl $17, $15, 2
-sra $17, $15, 2
-sll $17, $15, 24
-abs $17, $15
-
-ori $17, $15, 1
-andi $17, $15, 1
-xori $17, $15, 1
-
-#sw $15, 0($15)
-#lw $17, 0($15)
+sw $1, 4($31)
+lw $20, 0($31)
 nop
 nop
+nop
+nop
+nop
+nop
+nop
+
+## LOAD-TO-USE
+lw $2, 4($31)
+and $4, $2, $5
+or $4, $2, $5
+and $4, $2, $5
+or $4, $2, $5
+
+nop
+nop
+
+lw $1, 0($31)
+sw $1, 8($31)
 
 
 beq $zero, $1, HERE

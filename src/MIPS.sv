@@ -6,6 +6,13 @@ import mips_pkg::*;
 module MIPS_core (
 	input clk,
 	input rst);
+
+	logic flush_D;
+	logic flush_X;
+	logic flush_M;
+	logic flush_W;
+
+
 	
 	// FETCH STAGE
 	logic [ADDRESS_32_W-1:0] CurrPc_Branch_F;
@@ -28,6 +35,7 @@ module MIPS_core (
 	logic [ADDRESS_32_W-1:0] CurrentAddress_W;
 
 	logic [ADDRESS_32_W-1:0] NextAddress_F;	
+	logic [ADDRESS_32_W-1:0] CurrentAddress_F_decode;	
 
 
 	// F -> D
@@ -55,10 +63,13 @@ module MIPS_core (
 	logic [DATA_32_W-1:0] Instruction_M;
 	logic [DATA_32_W-1:0] Instruction_W;
 
-	`MIKE_FF_RST(Instruction_D, Instruction_F, clk, rst) 
-	`MIKE_FF_RST(Instruction_X, Instruction_D, clk, rst) 
-	`MIKE_FF_RST(Instruction_M, Instruction_X, clk, rst) 
-	`MIKE_FF_RST(Instruction_W, Instruction_M, clk, rst) 
+	logic Instruction_Flush;
+	assign Instruction_Flush = rst | flush_D;
+
+	`MIKE_FF_RST(Instruction_D, Instruction_F, clk, Instruction_Flush)
+	`MIKE_FF_RST(Instruction_X, Instruction_D, clk, Instruction_Flush)
+	`MIKE_FF_RST(Instruction_M, Instruction_X, clk, Instruction_Flush)
+	`MIKE_FF_RST(Instruction_W, Instruction_M, clk, Instruction_Flush)
 
 
 	// CONTROL FLAGS --- DECODE STAGE
@@ -206,6 +217,9 @@ module MIPS_core (
 	`MIKE_FF_RST(zero_W, zero_M, clk, rst) 
 
 	// BRANCH
+	
+	logic [ADDRESS_32_W-1:0] CurrPc_Jump_D;
+
 	logic BeqValid_X;
 	logic [ADDRESS_32_W-1:0] pcOut_Branch_X;
 	logic [ADDRESS_32_W-1:0] CurrPc_Jump_X;
@@ -221,6 +235,8 @@ module MIPS_core (
 	logic [ADDRESS_32_W-1:0] CurrPc_Jump_W;
 	logic [ADDRESS_32_W-1:0] signExt_shift_W;
 
+	`MIKE_FF_RST(CurrPc_Jump_X, CurrPc_Jump_D, clk, rst) 
+
 	`MIKE_FF_RST(BeqValid_M, BeqValid_X, clk, rst) 
 	`MIKE_FF_RST(pcOut_Branch_M, pcOut_Branch_X, clk, rst) 
 	`MIKE_FF_RST(CurrPc_Jump_M, CurrPc_Jump_X, clk, rst) 
@@ -230,6 +246,8 @@ module MIPS_core (
 	`MIKE_FF_RST(pcOut_Branch_W, pcOut_Branch_M, clk, rst) 
 	`MIKE_FF_RST(CurrPc_Jump_W, CurrPc_Jump_M, clk, rst) 
 	`MIKE_FF_RST(signExt_shift_W, signExt_shift_M, clk, rst) 
+
+	assign flush_D = Jump_D;
 
 	// MEM STAGE
 	logic data_stack_wr_addr_val_M;
@@ -272,20 +290,25 @@ module MIPS_core (
 	`MIKE_FF_RST(RegWrite_Wp1, RegWrite_W, clk, rst) 
 	logic [DATA_32_W-1:0] ReadDataMem_Wp1;				
 	`MIKE_FF_RST(ReadDataMem_Wp1, ReadDataMem_W, clk, rst) 
-	
+
+
+
+
+
+
 	// ------------------------------------------------------
 	// CurrentAddress_F Selection 
 	// ------------------------------------------------------
 	// Muxes for Program Counter Jump
 	assign CurrPc_Branch_F	= (BeqValid_X)? pcOut_Branch_X :  pcOut_plus4_F;	// Branch Mux
-	assign NextAddress_F	= (Jump_X)? CurrPc_Jump_X : CurrPc_Branch_F;		// Jump Mux
+	assign NextAddress_F	= (Jump_D)? CurrPc_Jump_D : CurrPc_Branch_F;		// Jump Mux
 
 
 
 	// ------------------------------------------------------
 	// Jump Address Generation
 	// ------------------------------------------------------	
-	assign CurrPc_Jump_X = {4'h0, Instruction_X[26:0],2'h0};
+	assign CurrPc_Jump_D = {4'h0, Instruction_D[26:0],2'h0};
 
 	// ------------------------------------------------------
 	// Next Address INCREMENT 4
@@ -319,7 +342,7 @@ module MIPS_core (
 	// ------------------------------------------------------	
 	InstructionMemory InstructionMemory(
 		.clk(clk), 
-		.Address(pcOut_F), 
+		.Address(CurrentAddress_F_decode), 
 		.ReadData(Instruction_F), 
 		.rst(rst));
 
@@ -442,12 +465,12 @@ module MIPS_core (
 mips_mem_ctrl mips_mem_ctrl (
     .rst(rst),
     `ifndef MEM_BUS_INSTRUCTIONS // NOT COMPATIBLE WITH PIPELINE
-        .pc_addr('h0), // PC ADDRESS SELECTED
+        .pc_addr(CurrentAddress_F), // PC ADDRESS SELECTED
     `endif
     .data_text_wr_addr_val(),    // output to data_text
     .data_text_wr_addr(),        // output to data_text
     .data_text_rd_addr_val(),    // output to data_text
-    .data_text_rd_addr(),            // output to instruction memory
+    .data_text_rd_addr(CurrentAddress_F_decode),            // output to instruction memory
     .sva_clk(clk),
     .mem_bus_rd_addr(AddressData_M), // Address input
     .mem_bus_wr_addr(AddressData_M), // Address input
@@ -473,7 +496,7 @@ mips_mem_ctrl mips_mem_ctrl (
 
 logic n_rst;
 assign n_rst = ~rst;
- `MIKE_FF_INIT_NRST(CurrentAddress_F, NextAddress_F, 32'h00000000, clk, n_rst) // PC COUNTER INIT it starts on 32'h00400000 - 4 for the initial propagation
+ `MIKE_FF_INIT_NRST(CurrentAddress_F, NextAddress_F, 32'h00400000, clk, n_rst) // PC COUNTER INIT it starts on 32'h00400000 - 4 for the initial propagation
 
 assign pcOut_F = CurrentAddress_F;
 
