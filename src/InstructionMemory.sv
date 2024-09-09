@@ -1,6 +1,6 @@
 module InstructionMemory(
 	input logic clk,
-	input logic [7:0] Address,
+	input logic [31:0] Address,
 	input logic rst,
 	output logic [31:0] ReadData
 );

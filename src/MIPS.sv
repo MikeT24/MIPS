@@ -27,6 +27,9 @@ module MIPS_core (
 	logic [ADDRESS_32_W-1:0] pcOut_plus4_W;
 	logic [ADDRESS_32_W-1:0] CurrentAddress_W;
 
+	logic [ADDRESS_32_W-1:0] NextAddress_F;	
+
+
 	// F -> D
 	`MIKE_FF_RST(pcOut_D, pcOut_F, clk, rst) 
 	`MIKE_FF_RST(pcOut_plus4_D, pcOut_plus4_F, clk, rst) 
@@ -95,6 +98,8 @@ module MIPS_core (
 	logic ALUSrc_W;
 	logic RegWrite_W;
 
+
+
 	`MIKE_FF(alu_control_X, alu_control_D, clk);
 	`MIKE_FF_RST(RegDst_X, RegDst_D, clk, rst) 
 	`MIKE_FF_RST(Branch_X, Branch_D, clk, rst) 
@@ -122,6 +127,9 @@ module MIPS_core (
 	`MIKE_FF_RST(ALUSrc_W, ALUSrc_M, clk, rst) 
 	`MIKE_FF_RST(RegWrite_W, RegWrite_M, clk, rst) 
 	
+
+
+
 	// DECODE STAGE																			
 	logic [DATA_32_W-1:0] signExt_D;					//Sign Extend
 	logic [DATA_32_W-1:0] ReadData1_D;					//Read Data from RegBank
@@ -129,11 +137,16 @@ module MIPS_core (
 
 	logic [DATA_32_W-1:0] muxALUSrc_X;					//ALU SOURCE	
 	logic [DATA_32_W-1:0] signExt_X;
-	logic [REG_ADDR_W:0] muxWriteReg_X;					//Muxes for registers
+	logic [REG_ADDR_W-1:0] muxWriteReg_X;					//Muxes for registers
 	logic [DATA_32_W-1:0] AddressData_X;				//ALU result
 	logic [DATA_32_W-1:0] ReadData1_X;
 	logic [DATA_32_W-1:0] ReadData2_X;
 
+	// INSTRUCTION PNEMONIC
+	t_instr_pnmen instr_pnem_D;
+	t_instr_pnmen instr_pnem_X;
+	t_instr_pnmen instr_pnem_M;
+	t_instr_pnmen instr_pnem_W;
 	// DATA FWD
 	logic [DATA_32_W-1:0] ReadData1_toAluMux_X;
 	logic [DATA_32_W-1:0] ReadData2_toAluMux_X;
@@ -141,7 +154,7 @@ module MIPS_core (
 	
 	logic [DATA_32_W-1:0] muxALUSrc_M;
 	logic [DATA_32_W-1:0] signExt_M;
-	logic [REG_ADDR_W:0] muxWriteReg_M;
+	logic [REG_ADDR_W-1:0] muxWriteReg_M;
 	logic [DATA_32_W-1:0] AddressData_M;
 	logic [DATA_32_W-1:0] ReadDataMem_M;				//Data from data memory
 	logic [DATA_32_W-1:0] ReadData1_M;
@@ -149,7 +162,7 @@ module MIPS_core (
 
 	logic [DATA_32_W-1:0] muxALUSrc_W;
 	logic [DATA_32_W-1:0] signExt_W;
-	logic [REG_ADDR_W:0]  muxWriteReg_W;
+	logic [REG_ADDR_W-1:0]  muxWriteReg_W;
 	logic [DATA_32_W-1:0] muxMemToReg_W;
 	logic [DATA_32_W-1:0] AddressData_W;
 	logic [DATA_32_W-1:0] ReadDataMem_W;
@@ -192,6 +205,7 @@ module MIPS_core (
 	`MIKE_FF_RST(zero_M, zero_X, clk, rst) 
 	`MIKE_FF_RST(zero_W, zero_M, clk, rst) 
 
+	// BRANCH
 	logic BeqValid_X;
 	logic [ADDRESS_32_W-1:0] pcOut_Branch_X;
 	logic [ADDRESS_32_W-1:0] CurrPc_Jump_X;
@@ -217,13 +231,55 @@ module MIPS_core (
 	`MIKE_FF_RST(CurrPc_Jump_W, CurrPc_Jump_M, clk, rst) 
 	`MIKE_FF_RST(signExt_shift_W, signExt_shift_M, clk, rst) 
 
+	// MEM STAGE
+	logic data_stack_wr_addr_val_M;
+	logic data_mem_wr_addr_val_M;
+	logic data_mmio_wr_addr_val_M;
+	logic data_stack_rd_addr_val_M;
+	logic data_mem_rd_addr_val_M;
+	logic data_mmio_rd_addr_val_M;
 
+	logic [ADDRESS_32_W-1:0] data_stack_wr_addr_M;
+	logic [ADDRESS_32_W-1:0] data_mem_wr_addr_M;
+	logic [ADDRESS_32_W-1:0] data_mmio_wr_addr_M;
+
+	logic data_stack_wr_addr_val_W;
+	logic data_mem_wr_addr_val_W;
+	logic data_mmio_wr_addr_val_W;
+	logic data_stack_rd_addr_val_W;
+	logic data_mem_rd_addr_val_W;
+	logic data_mmio_rd_addr_val_W;
+
+	logic [ADDRESS_32_W-1:0] data_stack_wr_addr_W;
+	logic [ADDRESS_32_W-1:0] data_mem_wr_addr_W;
+	logic [ADDRESS_32_W-1:0] data_mmio_wr_addr_W;
+
+
+	`MIKE_FF_RST(data_stack_wr_addr_val_W, data_stack_wr_addr_val_M, clk, rst) 
+	`MIKE_FF_RST(data_mem_wr_addr_val_W, data_mem_wr_addr_val_M, clk, rst) 
+	`MIKE_FF_RST(data_mmio_wr_addr_val_W, data_mmio_wr_addr_val_M, clk, rst) 
+	`MIKE_FF_RST(data_stack_rd_addr_val_W, data_stack_rd_addr_val_M, clk, rst) 
+	`MIKE_FF_RST(data_mem_rd_addr_val_W, data_mem_rd_addr_val_M, clk, rst) 
+	`MIKE_FF_RST(data_mmio_rd_addr_val_W, data_mmio_rd_addr_val_M, clk, rst)
+
+	`MIKE_FF_RST(data_stack_wr_addr_W, data_stack_wr_addr_M, clk, rst) 
+	`MIKE_FF_RST(data_mem_wr_addr_W, data_mem_wr_addr_M, clk, rst) 
+	`MIKE_FF_RST(data_mmio_wr_addr_W, data_mmio_wr_addr_M, clk, rst) 
+
+	// EXTRA STAGE FOR GETTING VALUES BEING WRITTEN TO THE REGBANK
+	// Forwarding from the inputs of the regbank
+	logic RegWrite_Wp1;
+	`MIKE_FF_RST(RegWrite_Wp1, RegWrite_W, clk, rst) 
+	logic [DATA_32_W-1:0] ReadDataMem_Wp1;				
+	`MIKE_FF_RST(ReadDataMem_Wp1, ReadDataMem_W, clk, rst) 
+	
 	// ------------------------------------------------------
 	// CurrentAddress_F Selection 
 	// ------------------------------------------------------
 	// Muxes for Program Counter Jump
-	assign CurrPc_Branch_F	= (BeqValid_W)? pcOut_Branch_W :  pcOut_plus4_W;	// Branch Mux
-	assign CurrentAddress_F = (Jump_W)? CurrPc_Jump_W : CurrPc_Branch_F;		// Jump Mux
+	assign CurrPc_Branch_F	= (BeqValid_X)? pcOut_Branch_X :  pcOut_plus4_F;	// Branch Mux
+	assign NextAddress_F	= (Jump_X)? CurrPc_Jump_X : CurrPc_Branch_F;		// Jump Mux
+
 
 
 	// ------------------------------------------------------
@@ -235,7 +291,7 @@ module MIPS_core (
 	// Next Address INCREMENT 4
 	// ------------------------------------------------------	
 	// Instruction Address Increment by 4	
-	incrementer incrementer(			
+	incrementer incrementer(	// COMPLETELY COMBINATIONAL		 
 		.instruction(pcOut_F), 
 		.pcOut_plus4(pcOut_plus4_F));
 
@@ -256,15 +312,7 @@ module MIPS_core (
 	assign signExt_shift_X = {signExt_X[29:0], 2'h0};
 
 
-	// ------------------------------------------------------
-	// PC Register
-	// ------------------------------------------------------	
-	pc programCounter(
-		.clk(clk), 
-		.rst(rst), 
-		.pcIn(CurrentAddress_F), 
-		.pcOut(pcOut_F));
-	
+
 
 	// ------------------------------------------------------
 	// Instruction Memory
@@ -283,6 +331,7 @@ module MIPS_core (
 		.rst(rst),
 		.instruction31_26(Instruction_D[31:26]), 
 		.instruction5_0(Instruction_D[5:0]), 
+		.Instruction_D(Instruction_D),
 		.alu_control(alu_control_D), 
 		.zero_X(zero_X),
 		.RegDst(RegDst_D), 
@@ -293,7 +342,11 @@ module MIPS_core (
 		.ALUSrc(ALUSrc_D), 
 		.RegWrite(RegWrite_D), 
 		.Jump(Jump_D),
-		.BeqValid_X(BeqValid_X)
+		.BeqValid_X(BeqValid_X),
+		.instr_pnem_D(instr_pnem_D),
+		.instr_pnem_X(instr_pnem_X),
+		.instr_pnem_M(instr_pnem_M),
+		.instr_pnem_W(instr_pnem_W)
 	);
 	
 
@@ -341,13 +394,12 @@ module MIPS_core (
 	) DataMemory (
 		.clk(clk), 
 		.rst(rst), 
-		.MemWrite(MemWrite_M), 
+		.MemWrite(data_mem_wr_addr_val_M), //MemWrite from memory controller
 		//.MemRead(MemRead), 
-		.Address(AddressData_M[$clog2(`DATA_MEM_DEPTH) - 1:0]), 
+		.Address(data_mem_wr_addr_M[$clog2(`DATA_MEM_DEPTH) - 1:0]), 
 		.WriteData(ReadData2_toAluMux_M), 	// DATA WRITTEN TO MEMORY --> ReadData2 from the register COMMING FROM DATA FWD
 		.ReadData(ReadDataMem_M)
 	);
-
 
 
 	// ------------------------------------------------------
@@ -356,20 +408,20 @@ module MIPS_core (
 	mips_data_fwd mips_data_fwd(
 		.clk(clk),
 		.rst(rst),
-		.rs1_e(Instruction_D[25:21]),
-		.rs2_e(Instruction_D[20:16]),
-		.rsd_e(rsd_e),
-		.rsd_m(rsd_m),
-		.rsd_w(rsd_w),
+		.rs1_e(Instruction_X[25:21]),
+		.rs2_e(Instruction_X[20:16]),
+		.rsd_e(muxWriteReg_X),
+		.rsd_m(muxWriteReg_M),
+		.rsd_w(muxWriteReg_W),
 		.reg_file_rd_data_1_e(ReadData1_X),
 		.reg_file_rd_data_2_e(ReadData2_X),
 		.reg_file_2_alu_1_e(ReadData1_toAluMux_X),
 		.reg_file_2_alu_2_e(ReadData2_toAluMux_X),
 		.reg_file_2_alu_2_m(ReadData2_toAluMux_M), // FLOPPED TO DATA MEMORY
-		.alu_result_m(muxWriteReg_M),
-		.alu_result_w(muxWriteReg_W),
-		.data_mem_rd_data_m(ReadDataMem_M),
-		.data_mem_rd_data_w(ReadDataMem_W),
+		.alu_result_m(AddressData_M),
+		.alu_result_w(AddressData_W),
+		.data_mem_rd_data_m(ReadDataMem_M), //not used
+		.data_mem_rd_data_w(ReadDataMem_W), //not used
 		.intr_opcode_d(instr_pnem_D),
 		.intr_opcode_e(instr_pnem_X),
 		.intr_opcode_m(instr_pnem_M),
@@ -379,12 +431,67 @@ module MIPS_core (
 		.reg_write_w(RegWrite_W),
 		.reg_write_hzd_free_m(RegWrite_M),
 		.reg_write_hzd_free_w(RegWrite_W),
-		.reg_write_hzd_free_w_plus1('b0), //TODO: DOUBLE CHECK
+		.reg_write_hzd_free_w_plus1(RegWrite_Wp1), //DATA FORWARD FOR CYCLE THAT REGBANK IS WRITING
 		.data_mem_bus_rd_data_m(ReadDataMem_M),
 		.data_mem_bus_rd_data_w(ReadDataMem_W),
-		.data_mem_bus_rd_data_w_plus1('b0) //TODO: DOUBLE CHECK
+		.data_mem_bus_rd_data_w_plus1(ReadDataMem_Wp1) //TODO: DOUBLE CHECK
 	);
+
+
+
+mips_mem_ctrl mips_mem_ctrl (
+    .rst(rst),
+    `ifndef MEM_BUS_INSTRUCTIONS // NOT COMPATIBLE WITH PIPELINE
+        .pc_addr('h0), // PC ADDRESS SELECTED
+    `endif
+    .data_text_wr_addr_val(),    // output to data_text
+    .data_text_wr_addr(),        // output to data_text
+    .data_text_rd_addr_val(),    // output to data_text
+    .data_text_rd_addr(),            // output to instruction memory
+    .sva_clk(clk),
+    .mem_bus_rd_addr(AddressData_M), // Address input
+    .mem_bus_wr_addr(AddressData_M), // Address input
+    .mem_bus_write(MemWrite_M),	// Mem Write
+    .mem_bus_read(1'b1),		// Always read enabled
+    .mem_bus_wr_addr_error(),	// Error Signals
+    .mem_bus_rd_addr_error(),	// Error Signals
+    .data_stack_wr_addr_val(data_stack_wr_addr_val_M),	// Data Stack Write
+    .data_mem_wr_addr_val(data_mem_wr_addr_val_M),
+    .data_mmio_wr_addr_val(data_mmio_wr_addr_val_M),
+    .data_stack_wr_addr(data_stack_wr_addr_M),
+    .data_mem_wr_addr(data_mem_wr_addr_M),
+    .data_mmio_wr_addr(data_mmio_wr_addr_M),
+    // READ enables will not be used at the moment
+    .data_stack_rd_addr_val(data_stack_rd_addr_val_M),
+    .data_mem_rd_addr_val(data_mem_rd_addr_val_M),
+    .data_mmio_rd_addr_val(data_mmio_rd_addr_val_M),
+    .data_stack_rd_addr(),
+    .data_mem_rd_addr(),
+    .data_mmio_rd_addr()
+);	
 	
+
+logic n_rst;
+assign n_rst = ~rst;
+ `MIKE_FF_INIT_NRST(CurrentAddress_F, NextAddress_F, 32'h00000000, clk, n_rst) // PC COUNTER INIT it starts on 32'h00400000 - 4 for the initial propagation
+
+assign pcOut_F = CurrentAddress_F;
+
+//h00400000
+	
+
+
+	// // ------------------------------------------------------
+	// // PC Register
+	// // ------------------------------------------------------	
+	// pc programCounter(
+	// 	.clk(clk), 
+	// 	.rst(rst), 
+	// 	.pcIn(CurrentAddress_F), 
+	// 	.pcOut(pcOut_F));
+
+
+
 endmodule
 	
 	

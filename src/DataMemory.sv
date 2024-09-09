@@ -22,7 +22,7 @@ logic [$clog2(DATA_32_W) - 1:0] Address_allign;
 logic error_addr;
 
 assign Address_allign = Address >> 2;
-assign error_addr = |(Address_allign % 4);
+assign error_addr = (|(Address_allign % 4)) & MemWrite;
 
 
 

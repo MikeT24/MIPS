@@ -70,15 +70,18 @@ typedef enum logic [3:0] {
 } t_alu_opcode;
 
 //typedef enum logic[INSTR_OPCODE_W-1:0] {
-	parameter ZERO        = 6'b0;
-	parameter ADD 		= 6'b100000;
-	parameter AND 		= 6'b100100;
-	parameter MULT        = 6'b011000;
-	parameter MULTU       = 6'b011001;
-	parameter OR          = 6'b100101;
-	parameter SLT	        = 6'b101010;
-	parameter SUB	        = 6'b100010;
-	parameter XOR         = 6'b100110;
+	parameter ZERO      = 6'b0;
+	parameter ADD       = 6'b100000;
+	parameter AND       = 6'b100100;
+	parameter MULT      = 6'b011000;
+	parameter MULTU     = 6'b011001;
+	parameter OR        = 6'b100101;
+	parameter SLT       = 6'b101010;
+	parameter SUB       = 6'b100010;
+	parameter XOR       = 6'b100110;
+    parameter SRL       = 6'b000010;
+    parameter SRA       = 6'b000011;
+    parameter SLL       = 6'b000000;
 //} t_instr5_0_opcode;
 
 //typedef enum logic[INSTR_OPCODE_W-1:0] {
@@ -94,21 +97,24 @@ typedef enum logic [3:0] {
 
 typedef enum logic [INSTR_OPCODE_W-1:0] {
     NEM_ZERO        = 6'b0,
-    NEM_ADD 		= 6'b100000,
-    NEM_AND 		= 6'b100100,
-    NEM_MULT        = 6'b011000,
-    NEM_MULTU       = 6'b011001,
-    NEM_OR          = 6'b100101,
-    NEM_SLT	        = 6'b101010,
-    NEM_SUB	        = 6'b100010,
-    NEM_XOR         = 6'b100110,
-    NEM_ADDI		= 6'b001000,
-    NEM_ADDIU		= 6'b001001,
-    NEM_BEQ 		= 6'b000100,
-    NEM_LW          = 6'b100011,
-    NEM_SW          = 6'b101011,
-    NEM_JUMP		= 6'b000010,
-    NEM_ABS         = 6'b100001
+    NEM_ADD 		= 6'h1,
+    NEM_AND 		= 6'h2,
+    NEM_MULT        = 6'h3,
+    NEM_MULTU       = 6'h4,
+    NEM_OR          = 6'h5,
+    NEM_SLT	        = 6'h6,
+    NEM_SUB	        = 6'h7,
+    NEM_XOR         = 6'h8,
+    NEM_ADDI		= 6'h9,
+    NEM_ADDIU		= 6'ha,
+    NEM_BEQ 		= 6'hb,
+    NEM_LW          = 6'hc,
+    NEM_SW          = 6'hd,
+    NEM_JUMP		= 6'he,
+    NEM_ABS         = 6'hf,
+    NEM_SRA         = 6'h10,
+    NEM_SRL         = 6'h11,
+    NEM_SLL         = 6'h12
 } t_instr_pnmen;
 
 typedef enum {

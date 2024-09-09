@@ -7,6 +7,7 @@ module control (
 	input logic rst,
 	input logic [5:0] instruction31_26,
 	input logic [5:0] instruction5_0,
+	input logic [DATA_32_W-1:0] Instruction_D,
 	input logic zero_X,
 	output t_alu_opcode alu_control,
 	output logic RegDst,
@@ -17,14 +18,15 @@ module control (
 	output logic ALUSrc,
 	output logic RegWrite,
 	output logic Jump,
-	output logic BeqValid_X
+	output logic BeqValid_X,
+	output t_instr_pnmen instr_pnem_D,
+	output t_instr_pnmen instr_pnem_X,
+	output t_instr_pnmen instr_pnem_M,
+	output t_instr_pnmen instr_pnem_W
 );
 
 // Pnmemonic for the instruction
-t_instr_pnmen instr_pnem_D;
-t_instr_pnmen instr_pnem_X;
-t_instr_pnmen instr_pnem_M;
-t_instr_pnmen instr_pnem_W;
+
 
 logic Branch_X;
 // Branching logic 
@@ -39,7 +41,6 @@ logic Branch_X;
 `MIKE_FF_RST(Branch_X, Branch, clk, rst) ;
 // ONLY BEQ SUPPPORTED
 assign BeqValid_X = (Branch_X & zero_X)?  1'b1 : 1'b0;					
-
 
 	always_comb begin
 	Jump		= 0;
@@ -121,18 +122,52 @@ assign BeqValid_X = (Branch_X & zero_X)?  1'b1 : 1'b0;
 						Branch		= 0;
 						instr_pnem_D = NEM_XOR;
 					end
-					ZERO: begin
-						RegDst		= 0;
-						RegWrite		= 0;
+					SRA: begin
+						RegDst		= 1;
+						RegWrite	= 1;
 						ALUSrc		= 0;
-						alu_control	= ALU_ADD;
-						MemWrite		= 0;
+						alu_control	= ALU_SRA;
+						MemWrite	= 0;
 						MemRead		= 0;
-						MemToReg		= 0;
+						MemToReg	= 0;
 						Branch		= 0;
-						instr_pnem_D = NEM_ZERO;
-					end
-
+						instr_pnem_D = NEM_SRA;
+					end			
+					SRL: begin
+						RegDst		= 1;
+						RegWrite	= 1;
+						ALUSrc		= 0;
+						alu_control	= ALU_SRL;
+						MemWrite	= 0;
+						MemRead		= 0;
+						MemToReg	= 0;
+						Branch		= 0;
+						instr_pnem_D = NEM_SRL;
+					end		
+					SLL: begin  // SRA 
+						if (|Instruction_D == 1'b1) begin 
+							RegDst		= 1;
+							RegWrite	= 1;
+							ALUSrc		= 0;
+							alu_control	= ALU_SLL;
+							MemWrite	= 0;
+							MemRead		= 0;
+							MemToReg	= 0;
+							Branch		= 0;
+							instr_pnem_D = NEM_SLL;
+						end
+						else  begin
+							RegDst		= 0;
+							RegWrite	= 0;
+							ALUSrc		= 0;
+							alu_control	= ALU_ADD;
+							MemWrite	= 0;
+							MemRead		= 0;
+							MemToReg	= 0;
+							Branch		= 0;
+							instr_pnem_D = NEM_ZERO;
+						end
+					end														
 				endcase
 			end
 			ADDI: begin

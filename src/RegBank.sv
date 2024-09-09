@@ -9,9 +9,9 @@ module RegBank #(
 )(
     input logic clk,
     input logic rst,
-    input t_instr_register reg_file_rd_addr_1,    // rs1,
-    input t_instr_register reg_file_rd_addr_2,    // rs2,
-    input t_instr_register reg_file_wr_addr,      // rsd,
+    input logic[REG_ADDR_W-1:0] reg_file_rd_addr_1,    // rs1,
+    input logic[REG_ADDR_W-1:0] reg_file_rd_addr_2,    // rs2,
+    input logic[REG_ADDR_W-1:0] reg_file_wr_addr,      // rsd,
     input logic reg_file_write,                  //reg_write,
     input logic [DATA_32_W - 1:0] reg_file_wr_data,
     output logic [DATA_32_W - 1:0] reg_file_rd_data_1,
@@ -23,8 +23,8 @@ logic [REG_FILE_DEPTH - 1:0][DATA_32_W - 1:0] reg_file;
 logic [REG_FILE_DEPTH - 1:0][DATA_32_W - 1:0] reg_file_ff /* synthesis preserve */ ;
 
 //Data read assignments
-assign reg_file_rd_data_1 = reg_file_ff[reg_file_rd_addr_1];
-assign reg_file_rd_data_2 = reg_file_ff[reg_file_rd_addr_2];
+assign reg_file_rd_data_1 = reg_file[reg_file_rd_addr_1];
+assign reg_file_rd_data_2 = reg_file[reg_file_rd_addr_2];
 
 
 //TODO: Asserts to prevent undesired addresses

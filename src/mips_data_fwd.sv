@@ -6,11 +6,11 @@ import mips_pkg::*;
 module mips_data_fwd (
     input logic clk,
     input logic rst,
-    input t_instr_register rs1_e,
-    input t_instr_register rs2_e,
-    input t_instr_register rsd_e,
-    input t_instr_register rsd_m,
-    input t_instr_register rsd_w,
+    input logic[REG_ADDR_W-1:0] rs1_e,
+    input logic[REG_ADDR_W-1:0] rs2_e,
+    input logic[REG_ADDR_W-1:0] rsd_e,
+    input logic[REG_ADDR_W-1:0] rsd_m,
+    input logic[REG_ADDR_W-1:0] rsd_w,
     input logic [DATA_32_W - 1:0] reg_file_rd_data_1_e,
     input logic [DATA_32_W - 1:0] reg_file_rd_data_2_e,
     output logic [DATA_32_W - 1:0] reg_file_2_alu_1_e,
@@ -44,7 +44,7 @@ logic [2:0] alu_src_a_fwd; // {fwd_m, fwd_w}
 logic [2:0] alu_src_b_fwd; 
 
 
-t_instr_register rsd_w_plus1;   // Time while it stores in register
+logic[REG_ADDR_W-1:0] rsd_w_plus1;   // Time while it stores in register
 t_instr_pnmen intr_opcode_w_plus1;
 logic [DATA_32_W - 1:0] alu_result_w_plus1;
 logic [DATA_32_W - 1:0] data_mem_rd_data_w_plus1;
@@ -114,7 +114,7 @@ always_comb begin
         else begin 
             reg_file_2_alu_2_e = data_mem_bus_rd_data_w; // fwd from WB
         end
-    end 
+    end
     // else if ((rs2_e == rsd_w_plus1) & (reg_write_hzd_free_w_plus1) & (rs2_e != ZERO)) begin 
     //     alu_src_b_fwd = 3'h1; 
     //     if ((intr_opcode_w_plus1 != NEM_LW)) begin 
