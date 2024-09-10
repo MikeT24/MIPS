@@ -45,22 +45,28 @@ logic [REG_ADDR_W-1:0] reg_src_b_addr_Wp1;      // Wp1 -- NOT NEEDED
 
 logic mult_start_P0;
 logic mult_start_P1;
+logic mult_start_P2;
+logic mult_start_P3;
+logic mult_start_W;
 
 `MIKE_FF_RST(mult_start_P0, mult_start_D, clk, rst)
 `MIKE_FF_RST(mult_start_P1, mult_start_P0, clk, rst)
+`MIKE_FF_RST(mult_start_P2, mult_start_P1, clk, rst)
+`MIKE_FF_RST(mult_start_P3, mult_start_P2, clk, rst)
+`MIKE_FF_RST(mult_start_W, mult_start_P3, clk, rst)
 
 
 logic register_stall;
-assign register_stall = (reg_src_a_addr_D == reg_src_a_addr_P0) | (reg_src_b_addr_D == reg_src_a_addr_P0) |
-                        (reg_src_a_addr_D == reg_src_a_addr_P1) | (reg_src_b_addr_D == reg_src_a_addr_P1) |
-                        (reg_src_a_addr_D == reg_src_a_addr_P2) | (reg_src_b_addr_D == reg_src_a_addr_P2);
+assign register_stall = (((reg_src_a_addr_D == reg_src_a_addr_P0) | (reg_src_b_addr_D == reg_src_a_addr_P0)) & mult_start_P0) |
+                        (((reg_src_a_addr_D == reg_src_a_addr_P1) | (reg_src_b_addr_D == reg_src_a_addr_P1)) & mult_start_P1) |
+                        (((reg_src_a_addr_D == reg_src_a_addr_P2) | (reg_src_b_addr_D == reg_src_a_addr_P2)) & mult_start_P2) ;
 
 
 logic write_port_stall;
 assign write_port_stall = mult_start_P1 & RegWrite_D & ~mult_start_D;
 
 logic register_dest_stall;
-assign register_dest_stall = (reg_dest_addr_mult == reg_dest_addr_D); // Don't check other P0 and P1 because address is static 
+assign register_dest_stall = ((reg_dest_addr_mult == reg_dest_addr_D) & mult_start_P0 & mult_start_P1); // Don't check other P0 and P1 because address is static 
 
 assign stall = register_stall & write_port_stall & register_dest_stall;
 
