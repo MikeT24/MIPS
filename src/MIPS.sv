@@ -64,7 +64,8 @@ module MIPS_core (
 	logic [DATA_32_W-1:0] Instruction_W;
 
 	logic Instruction_Flush;
-	assign Instruction_Flush = rst | flush_D;
+	logic flush_branch_D;
+	assign Instruction_Flush = rst | flush_D | flush_branch_D;
 
 	`MIKE_FF_RST(Instruction_D, Instruction_F, clk, Instruction_Flush)
 	`MIKE_FF_RST(Instruction_X, Instruction_D, clk, Instruction_Flush)
@@ -217,8 +218,12 @@ module MIPS_core (
 	`MIKE_FF_RST(zero_W, zero_M, clk, rst) 
 
 	// BRANCH
-	
+	logic BeqValid_D;
+
+
+	logic [ADDRESS_32_W-1:0] pcOut_Branch_D;
 	logic [ADDRESS_32_W-1:0] CurrPc_Jump_D;
+	logic [ADDRESS_32_W-1:0] signExt_shift_D;
 
 	logic BeqValid_X;
 	logic [ADDRESS_32_W-1:0] pcOut_Branch_X;
@@ -236,6 +241,11 @@ module MIPS_core (
 	logic [ADDRESS_32_W-1:0] signExt_shift_W;
 
 	`MIKE_FF_RST(CurrPc_Jump_X, CurrPc_Jump_D, clk, rst) 
+
+	`MIKE_FF_RST(BeqValid_X, BeqValid_D, clk, rst) 
+	`MIKE_FF_RST(pcOut_Branch_X, pcOut_Branch_D, clk, rst) 
+	`MIKE_FF_RST(signExt_shift_X, signExt_shift_D, clk, rst) 
+
 
 	`MIKE_FF_RST(BeqValid_M, BeqValid_X, clk, rst) 
 	`MIKE_FF_RST(pcOut_Branch_M, pcOut_Branch_X, clk, rst) 
@@ -300,7 +310,7 @@ module MIPS_core (
 	// CurrentAddress_F Selection 
 	// ------------------------------------------------------
 	// Muxes for Program Counter Jump
-	assign CurrPc_Branch_F	= (BeqValid_X)? pcOut_Branch_X :  pcOut_plus4_F;	// Branch Mux
+	assign CurrPc_Branch_F	= (BeqValid_D)? pcOut_Branch_D :  pcOut_plus4_F;	// Branch Mux
 	assign NextAddress_F	= (Jump_D)? CurrPc_Jump_D : CurrPc_Branch_F;		// Jump Mux
 
 
@@ -325,17 +335,23 @@ module MIPS_core (
  	// This is adding the result of the immidiate sign extended, shifted by 2 value
  	//	With the current PC Address
 	adderInstruction adder(
-		.pcOut_plus4(pcOut_plus4_X),		// +4 Incrementer output
-		.SignExtend(signExt_shift_X),		// Sign_extend shifted	
-		.pcOut_Branch(pcOut_Branch_X));	// Addition of both inputs	
+		.pcOut_plus4(pcOut_plus4_D),		// +4 Incrementer output
+		.SignExtend(signExt_shift_D),		// Sign_extend shifted	
+		.pcOut_Branch(pcOut_Branch_D));	// Addition of both inputs	
 
 	// ------------------------------------------------------
 	// Sign Extend
 	// ------------------------------------------------------	
-	assign signExt_shift_X = {signExt_X[29:0], 2'h0};
+	assign signExt_shift_D = {signExt_D[29:0], 2'h0};
 
 
-
+	mips_branch_unit mips_branch_unit (
+		.read_data_1(ReadData1_D),
+		.read_data_2(ReadData2_D),
+		.instr_pnem(instr_pnem_D),
+		.BeqValid(BeqValid_D),
+		.flush_branch(flush_branch_D)
+	);
 
 	// ------------------------------------------------------
 	// Instruction Memory
@@ -357,6 +373,7 @@ module MIPS_core (
 		.Instruction_D(Instruction_D),
 		.alu_control(alu_control_D), 
 		.zero_X(zero_X),
+		.Instruction_Flush(Instruction_Flush),
 		.RegDst(RegDst_D), 
 		.Branch(Branch_D), 
 		.MemRead(MemRead_D), 

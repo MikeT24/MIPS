@@ -9,6 +9,7 @@ module control (
 	input logic [5:0] instruction5_0,
 	input logic [DATA_32_W-1:0] Instruction_D,
 	input logic zero_X,
+	input logic Instruction_Flush,
 	output t_alu_opcode alu_control,
 	output logic RegDst,
 	output logic Branch,
@@ -33,9 +34,21 @@ logic Branch_X;
 
 
 // Instruction Pnemonic
-`MIKE_FF(instr_pnem_X, instr_pnem_D, clk) ;
-`MIKE_FF(instr_pnem_M, instr_pnem_X, clk) ;
-`MIKE_FF(instr_pnem_W, instr_pnem_M, clk) ;
+always_ff @(posedge clk) begin
+    if (rst) instr_pnem_X <= NEM_ZERO;				
+	else	 instr_pnem_X <= instr_pnem_D;					
+end		
+
+always_ff @(posedge clk) begin
+    if (rst) instr_pnem_M <= NEM_ZERO;				
+	else	 instr_pnem_M <= instr_pnem_X;					
+end		
+
+always_ff @(posedge clk) begin
+    if (rst) instr_pnem_W <= NEM_ZERO;				
+	else	 instr_pnem_W <= instr_pnem_M;					
+end		
+
 
 // ONLY BEQ SUPPPORTED
 `MIKE_FF_RST(Branch_X, Branch, clk, rst) ;
