@@ -12,7 +12,7 @@ module MIPS_core (
 	logic flush_M;
 	logic flush_W;
 
-
+	logic stall_PC;
 	
 	// FETCH STAGE
 	logic [ADDRESS_32_W-1:0] CurrPc_Branch_F;
@@ -142,7 +142,8 @@ module MIPS_core (
 
 
 
-	// DECODE STAGE																			
+	// DECODE STAGE		
+	logic [REG_ADDR_W-1:0] muxWriteReg_D;																	
 	logic [DATA_32_W-1:0] signExt_D;					//Sign Extend
 	logic [DATA_32_W-1:0] ReadData1_D;					//Read Data from RegBank
 	logic [DATA_32_W-1:0] ReadData2_D;					//Read Data from RegBank
@@ -153,6 +154,11 @@ module MIPS_core (
 	logic [DATA_32_W-1:0] AddressData_X;				//ALU result
 	logic [DATA_32_W-1:0] ReadData1_X;
 	logic [DATA_32_W-1:0] ReadData2_X;
+
+
+	logic [REG_ADDR_W-1:0] muxWriteReg_X_after_MULT_W;					//Mult mux address to wr register
+	logic [DATA_32_W-1:0] muxMemToReg_after_MULT_W;						//Mult mux Data to write Register
+
 
 	// INSTRUCTION PNEMONIC
 	t_instr_pnmen instr_pnem_D;
@@ -301,6 +307,16 @@ module MIPS_core (
 	logic [DATA_32_W-1:0] ReadDataMem_Wp1;				
 	`MIKE_FF_RST(ReadDataMem_Wp1, ReadDataMem_W, clk, rst) 
 
+	logic mult_start_D;
+	logic mult_start_X;
+	logic [DATA_32_W-1:0] mult_lower_W;
+	logic mult_done_W;
+
+	logic [ADDRESS_32_W-1:0] mult_address;
+	assign mult_address = 5'd31;
+
+	assign mult_start_D = (instr_pnem_D == NEM_MULT);
+	`MIKE_FF_RST(mult_start_X, mult_start_D, clk, rst) 
 
 
 
@@ -397,9 +413,16 @@ module MIPS_core (
 	// 	if (RegDst_X)	muxWriteReg_X = Instruction_X[15:11];
 	// 	else			muxWriteReg_X = Instruction_X[20:16];
 	// end
+	// FOR STALL DETECTION
+	assign muxWriteReg_D	= (RegDst_D)?		Instruction_D[15:11] : Instruction_D[20:16];
 	assign muxWriteReg_X	= (RegDst_X)?		Instruction_X[15:11] : Instruction_X[20:16];
+
 	assign muxALUSrc_X		= (ALUSrc_X)?		signExt_X : ReadData2_toAluMux_X;  //ReadData2_toAluMux_X --> Comes from DATA_FWD
 	assign muxMemToReg_W	= (MemToReg_W)?		ReadDataMem_W : AddressData_W;
+
+	// MULTIPLICATION MUXES
+	assign muxWriteReg_X_after_MULT_W	= (mult_done_W)? mult_address : muxWriteReg_X;
+	assign muxMemToReg_after_MULT_W = (mult_done_W)? mult_lower_W : muxMemToReg_W;
 
 	
 	RegBank #(
@@ -409,9 +432,9 @@ module MIPS_core (
 		.rst(rst), 
 		.reg_file_rd_addr_1(Instruction_D[25:21]),	//Register is read in D   
 		.reg_file_rd_addr_2(Instruction_D[20:16]),	//Register is read in D   
-		.reg_file_wr_addr(muxWriteReg_W),	//Register is written in WB  
-		.reg_file_write(RegWrite_W),		//Register is written in WB 
-		.reg_file_wr_data(muxMemToReg_W),	//Register is written in WB  
+		.reg_file_wr_addr(muxWriteReg_X_after_MULT_W),	//Register is written in WB  
+		.reg_file_write(RegWrite_W | mult_done_W),	//Register is written in WB 
+		.reg_file_wr_data(muxMemToReg_after_MULT_W),	//Register is written in WB  
 		.reg_file_rd_data_1(ReadData1_D),	//Register is read in D  
 		.reg_file_rd_data_2(ReadData2_D)		//Register is read in D  
 	);
@@ -510,6 +533,28 @@ mips_mem_ctrl mips_mem_ctrl (
     .data_mmio_rd_addr()
 );	
 	
+mips_4st_pipe_mult mips_4st_pipe_mult (
+	.clk(clk),
+	.rst(rst),
+	.start(mult_start_X),
+	.done(mult_done_W),	// Means Write to the MULT REGISTERS
+	.src_a(ReadData1_toAluMux_X),
+	.src_b(muxALUSrc_X),
+	.mult_lower(mult_lower_W)
+);
+
+mips_stall_generator mips_stall_generator (
+	.clk(clk),
+	.rst(rst),
+	.mult_start_D(mult_start_D),
+	.reg_src_a_addr_D(Instruction_D[25:21]),
+	.reg_src_b_addr_D(Instruction_D[20:16]),
+	.reg_dest_addr_D(muxWriteReg_D),
+	.reg_dest_addr_mult(mult_address),
+	.RegWrite_D(RegWrite_D),
+	.stall(stall_PC)
+);
+
 
 logic n_rst;
 assign n_rst = ~rst;

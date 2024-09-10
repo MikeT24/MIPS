@@ -180,6 +180,17 @@ assign BeqValid_X = (Branch_X & zero_X)?  1'b1 : 1'b0;
 							Branch		= 0;
 							instr_pnem_D = NEM_ZERO;
 						end
+					end
+					MULT: begin
+						RegDst		= 1;
+						RegWrite	= 1;
+						ALUSrc		= 0;
+						alu_control	= ALU_ADD;
+						MemWrite	= 0;
+						MemRead		= 0;
+						MemToReg	= 0;
+						Branch		= 0;
+						instr_pnem_D = NEM_MULT;					
 					end														
 				endcase
 			end

@@ -9,10 +9,10 @@ module RegBank #(
 )(
     input logic clk,
     input logic rst,
-    input logic[REG_ADDR_W-1:0] reg_file_rd_addr_1,    // rs1,
-    input logic[REG_ADDR_W-1:0] reg_file_rd_addr_2,    // rs2,
-    input logic[REG_ADDR_W-1:0] reg_file_wr_addr,      // rsd,
-    input logic reg_file_write,                  //reg_write,
+    input logic [REG_ADDR_W-1:0] reg_file_rd_addr_1,     // rs1,
+    input logic [REG_ADDR_W-1:0] reg_file_rd_addr_2,     // rs2,
+    input logic [REG_ADDR_W-1:0] reg_file_wr_addr,       // rsd,
+    input logic reg_file_write,                         //reg_write,
     input logic [DATA_32_W - 1:0] reg_file_wr_data,
     output logic [DATA_32_W - 1:0] reg_file_rd_data_1,
     output logic [DATA_32_W - 1:0] reg_file_rd_data_2
@@ -44,5 +44,6 @@ generate
         `MIKE_FF_RST(reg_file_ff[depth], reg_file[depth], clk, rst)
     end
 endgenerate
+
 
 endmodule
