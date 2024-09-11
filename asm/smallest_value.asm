@@ -1,8 +1,10 @@
 nop
 
 ## FIND LOWER VALUE
-add $1, $0, $0
-addi $2, $0, 36
+## GETTING THE ADDRESS OF THE DATA MEMORY (0x10010000)
+## IS PRELOADED
+
+addi $2, $1, 36
 lw $3, 0($1)
 LOOP: 
 addi $1, $1, 4

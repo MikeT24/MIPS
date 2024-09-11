@@ -42,6 +42,15 @@
 		end																	
 
 
+`define MIKE_FF_EN_RST(q,i,en,clk,rst)		\
+	always_ff @(posedge clk)					\
+		begin																\
+        	if (rst) q <= '0 ;										\
+			else if (en) q <= i ;									\
+			else q <= q ;												\
+		end																	
+
+
 `define MIKE_FF_INIT_EN_NRST(q,i,init,en,clk,rst)		\
 always_ff @(posedge clk)					\
 	begin																\

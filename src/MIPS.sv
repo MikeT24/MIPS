@@ -36,7 +36,7 @@ module MIPS_core (
 
 	logic [ADDRESS_32_W-1:0] NextAddress_F;	
 	logic [ADDRESS_32_W-1:0] CurrentAddress_F_decode;	
-
+	logic [ADDRESS_32_W-1:0] Next_Address_postStall_F;
 
 	// F -> D
 	`MIKE_FF_RST(pcOut_D, pcOut_F, clk, rst) 
@@ -65,12 +65,15 @@ module MIPS_core (
 
 	logic Instruction_Flush;
 	logic flush_branch_D;
+
+	logic Nstall_PC;
+	assign Nstall_PC = ~stall_PC;
 	assign Instruction_Flush = rst | flush_D | flush_branch_D;
 
-	`MIKE_FF_RST(Instruction_D, Instruction_F, clk, Instruction_Flush)
-	`MIKE_FF_RST(Instruction_X, Instruction_D, clk, Instruction_Flush)
-	`MIKE_FF_RST(Instruction_M, Instruction_X, clk, Instruction_Flush)
-	`MIKE_FF_RST(Instruction_W, Instruction_M, clk, Instruction_Flush)
+	`MIKE_FF_EN_RST(Instruction_D, Instruction_F, Nstall_PC, clk, Instruction_Flush)
+	`MIKE_FF_EN_RST(Instruction_X, Instruction_D, Nstall_PC, clk, Instruction_Flush)
+	`MIKE_FF_EN_RST(Instruction_M, Instruction_X, Nstall_PC, clk, Instruction_Flush)
+	`MIKE_FF_EN_RST(Instruction_W, Instruction_M, Nstall_PC, clk, Instruction_Flush)
 
 
 	// CONTROL FLAGS --- DECODE STAGE
@@ -326,10 +329,13 @@ module MIPS_core (
 	// CurrentAddress_F Selection 
 	// ------------------------------------------------------
 	// Muxes for Program Counter Jump
-	assign CurrPc_Branch_F	= (BeqValid_D)? pcOut_Branch_D :  pcOut_plus4_F;	// Branch Mux
-	assign NextAddress_F	= (Jump_D)? CurrPc_Jump_D : CurrPc_Branch_F;		// Jump Mux
-
-
+	assign Next_Address_postStall_F = (stall_PC) ? pcOut_F : pcOut_plus4_F;				// Stall Mux 
+	assign CurrPc_Branch_F			= (BeqValid_D)? pcOut_Branch_D :  Next_Address_postStall_F;	// Branch Mux
+	assign NextAddress_F			= (Jump_D)? CurrPc_Jump_D : CurrPc_Branch_F;				// Jump Mux
+	
+	
+	
+	//assign Next_Address_postStall_F = (stall_PC) ? pcOut_F : NextAddress_F;		
 
 	// ------------------------------------------------------
 	// Jump Address Generation
@@ -421,7 +427,7 @@ module MIPS_core (
 	assign muxMemToReg_W	= (MemToReg_W)?		ReadDataMem_W : AddressData_W;
 
 	// MULTIPLICATION MUXES
-	assign muxWriteReg_X_after_MULT_W	= (mult_done_W)? mult_address : muxWriteReg_X;
+	assign muxWriteReg_X_after_MULT_W	= (mult_done_W)? mult_address : muxWriteReg_W;
 	assign muxMemToReg_after_MULT_W = (mult_done_W)? mult_lower_W : muxMemToReg_W;
 
 	
@@ -543,15 +549,18 @@ mips_4st_pipe_mult mips_4st_pipe_mult (
 	.mult_lower(mult_lower_W)
 );
 
+
+
 mips_stall_generator mips_stall_generator (
 	.clk(clk),
 	.rst(rst),
 	.mult_start_D(mult_start_D),
-	.reg_src_a_addr_D(Instruction_D[25:21]),
-	.reg_src_b_addr_D(Instruction_D[20:16]),
+	.reg_src_a_addr_D(Instruction_D[25:21]),	//$s
+	.reg_src_b_addr_D(Instruction_D[20:16]),	//$t
 	.reg_dest_addr_D(muxWriteReg_D),
 	.reg_dest_addr_mult(mult_address),
 	.RegWrite_D(RegWrite_D),
+	.instr_pnem_D(instr_pnem_D),
 	.stall(stall_PC)
 );
 

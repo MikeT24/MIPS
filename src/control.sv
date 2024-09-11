@@ -10,6 +10,7 @@ module control (
 	input logic [DATA_32_W-1:0] Instruction_D,
 	input logic zero_X,
 	input logic Instruction_Flush,
+	output logic Immediate_Instruction,
 	output t_alu_opcode alu_control,
 	output logic RegDst,
 	output logic Branch,
@@ -68,6 +69,7 @@ assign BeqValid_X = (Branch_X & zero_X)?  1'b1 : 1'b0;
 	instr_pnem_D = NEM_ZERO;
 		case(instruction31_26)
 			ZERO: begin
+				Immediate_Instruction = 1'b0;
 				case(instruction5_0)
 					ADD: begin
 						RegDst		= 1;
@@ -204,6 +206,7 @@ assign BeqValid_X = (Branch_X & zero_X)?  1'b1 : 1'b0;
 				MemToReg		= 0;
 				Branch		= 0;
 				instr_pnem_D = NEM_ADDI;
+				Immediate_Instruction = 1'b1;
 			end
 			ADDIU: begin
 				RegDst		= 0;
@@ -215,6 +218,7 @@ assign BeqValid_X = (Branch_X & zero_X)?  1'b1 : 1'b0;
 				MemToReg		= 0;
 				Branch		= 0;
 				instr_pnem_D = NEM_ADDIU;
+				Immediate_Instruction = 1'b1;
 			end
 			BEQ: begin
 				RegDst		= 1'b0;
@@ -226,6 +230,7 @@ assign BeqValid_X = (Branch_X & zero_X)?  1'b1 : 1'b0;
 				MemToReg		= 1'b0;
 				Branch		= 1;
 				instr_pnem_D = NEM_BEQ;
+				Immediate_Instruction = 1'b1;
 			end
 			LW: begin
 				RegDst		= 0;
@@ -237,6 +242,7 @@ assign BeqValid_X = (Branch_X & zero_X)?  1'b1 : 1'b0;
 				MemToReg		= 1;
 				Branch		= 0;
 				instr_pnem_D = NEM_LW;
+				Immediate_Instruction = 1'b1;
 			end
 			SW: begin
 				RegDst		= 1'b0;
@@ -248,6 +254,7 @@ assign BeqValid_X = (Branch_X & zero_X)?  1'b1 : 1'b0;
 				MemToReg		= 1'b0;
 				Branch		= 0;
 				instr_pnem_D = NEM_SW;
+				Immediate_Instruction = 1'b1;
 			end
 			JUMP: begin
 				RegDst		= 0;
@@ -260,6 +267,7 @@ assign BeqValid_X = (Branch_X & zero_X)?  1'b1 : 1'b0;
 				Branch		= 0;
 				Jump			= 1;
 				instr_pnem_D = NEM_JUMP;
+				Immediate_Instruction = 1'b1;
 			end
 			ABS: begin
 				RegDst		= 0;
@@ -271,6 +279,7 @@ assign BeqValid_X = (Branch_X & zero_X)?  1'b1 : 1'b0;
 				MemToReg		= 0;
 				Branch		= 0;
 				instr_pnem_D = NEM_ABS;
+				Immediate_Instruction = 1'b1;
 			end
 		endcase
 	end
