@@ -88,15 +88,19 @@ logic src_b_D_P2;
 assign src_a_D_P0 = (reg_src_a_addr_D == reg_dest_addr_adapted_P0) & mult_start_P0;
 assign src_a_D_P1 = (reg_src_a_addr_D == reg_dest_addr_adapted_P1) & mult_start_P1;
 assign src_a_D_P2 = (reg_src_a_addr_D == reg_dest_addr_adapted_P2) & mult_start_P2;
+assign src_a_D_P3 = (reg_src_a_addr_D == reg_dest_addr_adapted_P3) & mult_start_P3;
+
 assign src_b_D_P0 = (reg_src_b_addr_D == reg_dest_addr_adapted_P0) & mult_start_P0;
 assign src_b_D_P1 = (reg_src_b_addr_D == reg_dest_addr_adapted_P1) & mult_start_P1;
 assign src_b_D_P2 = (reg_src_b_addr_D == reg_dest_addr_adapted_P2) & mult_start_P2;
+assign src_b_D_P3 = (reg_src_b_addr_D == reg_dest_addr_adapted_P3) & mult_start_P3;
 
 logic register_stall;
 assign register_stall = valid_instruction_D &
                         (((src_a_D_P0 | src_b_D_P0)) |
                          ((src_a_D_P1 | src_b_D_P1)) |
-                         ((src_a_D_P2 | src_b_D_P2)));
+                         ((src_a_D_P2 | src_b_D_P2)) |
+                         ((src_a_D_P3 | src_b_D_P3)));
 
 logic stall_livelock;
 logic write_port_stall;

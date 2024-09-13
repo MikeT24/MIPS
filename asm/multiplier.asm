@@ -1,4 +1,5 @@
 #Basic Init
+#$28 CONTAINS MEM ADDRESS
 nop
 addi $1, $zero, 0xf
 addi $2, $zero, 0x2
@@ -48,6 +49,12 @@ nop
 nop
 nop
 
+## Load2use multiply, then store mult value
+lw $1, 4($28) 
+mult $1, $4
+sw $31, 4($28)
+
+
 # Branch Interruption -- this will be taken, mult should be cancelled/not started
 beq $zero, $zero, HERE
 mult $2, $31 # This should not finish executing
@@ -56,8 +63,10 @@ add $1, $1, $1	#This should not execute
 add $1, $1, $1	#This should not execute
 add $1, $1, $1	#This should not execute
 
+
 HERE: 
 addi $2, $2, 1 # Should land here infinitely 
 nop	
 j HERE	
+
 

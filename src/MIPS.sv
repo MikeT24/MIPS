@@ -12,8 +12,15 @@ module MIPS_core (
 	logic flush_M;
 	logic flush_W;
 
-	logic stall_PC;
-	
+	logic stall_PC_D;
+	logic stall_PC_X;
+	logic stall_PC_M;
+	logic stall_PC_W;
+
+	`MIKE_FF_RST(stall_PC_X, stall_PC_D, clk, rst) 
+	`MIKE_FF_RST(stall_PC_M, stall_PC_X, clk, rst) 
+	`MIKE_FF_RST(stall_PC_W, stall_PC_M, clk, rst) 
+
 	// FETCH STAGE
 	logic [ADDRESS_32_W-1:0] CurrPc_Branch_F;
 	
@@ -66,14 +73,41 @@ module MIPS_core (
 	logic Instruction_Flush;
 	logic flush_branch_D;
 
-	logic Nstall_PC;
-	assign Nstall_PC = ~stall_PC;
+	logic Nstall_PC_D;
+	logic Nstall_PC_X;
+	logic Nstall_PC_M;
+	logic Nstall_PC_W;
+
+	`MIKE_FF_RST(Nstall_PC_X, Nstall_PC_D, clk, rst) 
+	`MIKE_FF_RST(Nstall_PC_M, Nstall_PC_X, clk, rst) 
+	`MIKE_FF_RST(Nstall_PC_W, Nstall_PC_M, clk, rst) 
+
+
+
+
+
+	assign Nstall_PC_D = ~stall_PC_D;
 	assign Instruction_Flush = rst | flush_D | flush_branch_D;
 
-	`MIKE_FF_EN_RST(Instruction_D, Instruction_F, Nstall_PC, clk, Instruction_Flush)
-	`MIKE_FF_EN_RST(Instruction_X, Instruction_D, Nstall_PC, clk, Instruction_Flush)
-	`MIKE_FF_EN_RST(Instruction_M, Instruction_X, Nstall_PC, clk, Instruction_Flush)
-	`MIKE_FF_EN_RST(Instruction_W, Instruction_M, Nstall_PC, clk, Instruction_Flush)
+	`MIKE_FF_EN_RST(Instruction_D, Instruction_F, Nstall_PC_D, clk, Instruction_Flush)
+	`MIKE_FF_EN_RST(Instruction_X, Instruction_D, Nstall_PC_D, clk, Instruction_Flush)
+	`MIKE_FF_EN_RST(Instruction_M, Instruction_X, Nstall_PC_X, clk, Instruction_Flush)
+	`MIKE_FF_EN_RST(Instruction_W, Instruction_M, Nstall_PC_M, clk, Instruction_Flush)
+
+
+	// $t register == rs2 as it varies
+	logic [REG_ADDR_W-1:0] Instruction_rs2_D;	
+	logic [REG_ADDR_W-1:0] Instruction_rs2_X;	
+	logic [REG_ADDR_W-1:0] Instruction_rs2_M;	
+	logic [REG_ADDR_W-1:0] Instruction_rs2_W;	
+	logic Immediate_Instruction_D;
+
+	
+	assign Instruction_rs2_D = (~Immediate_Instruction_D) ? Instruction_D[20:16] : 5'h0;
+
+	`MIKE_FF_EN_RST(Instruction_rs2_X, Instruction_rs2_D, Nstall_PC_D, clk, Instruction_Flush)
+	`MIKE_FF_EN_RST(Instruction_rs2_M, Instruction_rs2_X, Nstall_PC_X, clk, Instruction_Flush)
+	`MIKE_FF_EN_RST(Instruction_rs2_W, Instruction_rs2_M, Nstall_PC_W, clk, Instruction_Flush)
 
 
 	// CONTROL FLAGS --- DECODE STAGE
@@ -116,31 +150,31 @@ module MIPS_core (
 
 
 	`MIKE_FF(alu_control_X, alu_control_D, clk);
-	`MIKE_FF_RST(RegDst_X, RegDst_D, clk, rst) 
-	`MIKE_FF_RST(Branch_X, Branch_D, clk, rst) 
-	`MIKE_FF_RST(MemRead_X, MemRead_D, clk, rst) 
-	`MIKE_FF_RST(MemToReg_X, MemToReg_D, clk, rst) 
-	`MIKE_FF_RST(MemWrite_X, MemWrite_D, clk, rst) 
-	`MIKE_FF_RST(ALUSrc_X, ALUSrc_D, clk, rst) 
-	`MIKE_FF_RST(RegWrite_X, RegWrite_D, clk, rst) 
+	`MIKE_FF_EN_RST(RegDst_X, RegDst_D, Nstall_PC_D, clk, rst) 
+	`MIKE_FF_EN_RST(Branch_X, Branch_D, Nstall_PC_D, clk, rst) 
+	`MIKE_FF_EN_RST(MemRead_X, MemRead_D, Nstall_PC_D, clk, rst) 
+	`MIKE_FF_EN_RST(MemToReg_X, MemToReg_D, Nstall_PC_D, clk, rst) 
+	`MIKE_FF_EN_RST(MemWrite_X, MemWrite_D, Nstall_PC_D, clk, rst) 
+	`MIKE_FF_EN_RST(ALUSrc_X, ALUSrc_D, Nstall_PC_D, clk, rst) 
+	`MIKE_FF_EN_RST(RegWrite_X, RegWrite_D, Nstall_PC_D, clk, rst) 
 
 	`MIKE_FF(alu_control_M, alu_control_X, clk);
-	`MIKE_FF_RST(RegDst_M, RegDst_X, clk, rst) 
-	`MIKE_FF_RST(Branch_M, Branch_X, clk, rst) 
-	`MIKE_FF_RST(MemRead_M, MemRead_X, clk, rst) 
-	`MIKE_FF_RST(MemToReg_M, MemToReg_X, clk, rst) 
-	`MIKE_FF_RST(MemWrite_M, MemWrite_X, clk, rst) 
-	`MIKE_FF_RST(ALUSrc_M, ALUSrc_X, clk, rst) 
-	`MIKE_FF_RST(RegWrite_M, RegWrite_X, clk, rst) 
+	`MIKE_FF_EN_RST(RegDst_M, RegDst_X, Nstall_PC_X, clk, rst) 
+	`MIKE_FF_EN_RST(Branch_M, Branch_X, Nstall_PC_X, clk, rst) 
+	`MIKE_FF_EN_RST(MemRead_M, MemRead_X, Nstall_PC_X, clk, rst) 
+	`MIKE_FF_EN_RST(MemToReg_M, MemToReg_X, Nstall_PC_X, clk, rst) 
+	`MIKE_FF_EN_RST(MemWrite_M, MemWrite_X, Nstall_PC_X, clk, rst) 
+	`MIKE_FF_EN_RST(ALUSrc_M, ALUSrc_X, Nstall_PC_X, clk, rst) 
+	`MIKE_FF_EN_RST(RegWrite_M, RegWrite_X, Nstall_PC_X, clk, rst) 
 	
 	`MIKE_FF(alu_control_W, alu_control_M, clk);
-	`MIKE_FF_RST(RegDst_W, RegDst_M, clk, rst) 
-	`MIKE_FF_RST(Branch_W, Branch_M, clk, rst) 
-	`MIKE_FF_RST(MemRead_W, MemRead_M, clk, rst) 
-	`MIKE_FF_RST(MemToReg_W, MemToReg_M, clk, rst) 
-	`MIKE_FF_RST(MemWrite_W, MemWrite_M, clk, rst) 
-	`MIKE_FF_RST(ALUSrc_W, ALUSrc_M, clk, rst) 
-	`MIKE_FF_RST(RegWrite_W, RegWrite_M, clk, rst) 
+	`MIKE_FF_EN_RST(RegDst_W, RegDst_M, Nstall_PC_M, clk, rst) 
+	`MIKE_FF_EN_RST(Branch_W, Branch_M, Nstall_PC_M, clk, rst) 
+	`MIKE_FF_EN_RST(MemRead_W, MemRead_M, Nstall_PC_M, clk, rst) 
+	`MIKE_FF_EN_RST(MemToReg_W, MemToReg_M, Nstall_PC_M, clk, rst) 
+	`MIKE_FF_EN_RST(MemWrite_W, MemWrite_M, Nstall_PC_M, clk, rst) 
+	`MIKE_FF_EN_RST(ALUSrc_W, ALUSrc_M, Nstall_PC_M, clk, rst) 
+	`MIKE_FF_EN_RST(RegWrite_W, RegWrite_M, Nstall_PC_M, clk, rst) 
 	
 
 
@@ -190,31 +224,31 @@ module MIPS_core (
 	logic [DATA_32_W-1:0] ReadData1_W;
 	logic [DATA_32_W-1:0] ReadData2_W;
 
-	`MIKE_FF_RST(signExt_X, signExt_D, clk, rst) 
-	`MIKE_FF_RST(ReadData1_X, ReadData1_D, clk, rst) 
-	`MIKE_FF_RST(ReadData2_X, ReadData2_D, clk, rst) 
+	`MIKE_FF_EN_RST(signExt_X, signExt_D, Nstall_PC_D, clk, rst) 
+	`MIKE_FF_EN_RST(ReadData1_X, ReadData1_D, Nstall_PC_D, clk, rst) 
+	`MIKE_FF_EN_RST(ReadData2_X, ReadData2_D, Nstall_PC_D, clk, rst) 
 
-	`MIKE_FF_RST(muxALUSrc_M, muxALUSrc_X, clk, rst) 
-	`MIKE_FF_RST(signExt_M, signExt_X, clk, rst) 
-	`MIKE_FF_RST(muxWriteReg_M, muxWriteReg_X, clk, rst) 
-	`MIKE_FF_RST(AddressData_M, AddressData_X, clk, rst) 
-	`MIKE_FF_RST(ReadData1_M, ReadData1_X, clk, rst) 
-	`MIKE_FF_RST(ReadData2_M, ReadData2_X, clk, rst) 
+	`MIKE_FF_EN_RST(muxALUSrc_M, muxALUSrc_X, Nstall_PC_X, clk, rst) 
+	`MIKE_FF_EN_RST(signExt_M, signExt_X, Nstall_PC_X, clk, rst) 
+	`MIKE_FF_EN_RST(muxWriteReg_M, muxWriteReg_X, Nstall_PC_X, clk, rst) 
+	`MIKE_FF_EN_RST(AddressData_M, AddressData_X, Nstall_PC_X, clk, rst) 
+	`MIKE_FF_EN_RST(ReadData1_M, ReadData1_X, Nstall_PC_X, clk, rst) 
+	`MIKE_FF_EN_RST(ReadData2_M, ReadData2_X, Nstall_PC_X, clk, rst) 
 
-	`MIKE_FF_RST(muxALUSrc_W, muxALUSrc_M, clk, rst) 
-	`MIKE_FF_RST(signExt_W, signExt_M, clk, rst) 
-	`MIKE_FF_RST(muxWriteReg_W, muxWriteReg_M, clk, rst) 
-	`MIKE_FF_RST(AddressData_W, AddressData_M, clk, rst) 
-	`MIKE_FF_RST(ReadDataMem_W, ReadDataMem_M, clk, rst) 
-	`MIKE_FF_RST(ReadData1_W, ReadData1_M, clk, rst) 
-	`MIKE_FF_RST(ReadData2_W, ReadData2_M, clk, rst) 
+	`MIKE_FF_EN_RST(muxALUSrc_W, muxALUSrc_M, Nstall_PC_M, clk, rst) 
+	`MIKE_FF_EN_RST(signExt_W, signExt_M, Nstall_PC_M, clk, rst) 
+	`MIKE_FF_EN_RST(muxWriteReg_W, muxWriteReg_M, Nstall_PC_M, clk, rst) 
+	`MIKE_FF_EN_RST(AddressData_W, AddressData_M, Nstall_PC_M, clk, rst) 
+	`MIKE_FF_EN_RST(ReadDataMem_W, ReadDataMem_M, Nstall_PC_M, clk, rst) 
+	`MIKE_FF_EN_RST(ReadData1_W, ReadData1_M, Nstall_PC_M, clk, rst) 
+	`MIKE_FF_EN_RST(ReadData2_W, ReadData2_M, Nstall_PC_M, clk, rst) 
 
 	logic Jump_D;
 	logic Jump_X;
 	logic Jump_M;
 	logic Jump_W;
 
-	`MIKE_FF_RST(Jump_X, Jump_D, clk, rst) 
+ 	`MIKE_FF_EN_RST(Jump_X, Jump_D, Nstall_PC_D, clk, rst) 
 	`MIKE_FF_RST(Jump_M, Jump_X, clk, rst) 
 	`MIKE_FF_RST(Jump_W, Jump_M, clk, rst) 
 
@@ -329,13 +363,13 @@ module MIPS_core (
 	// CurrentAddress_F Selection 
 	// ------------------------------------------------------
 	// Muxes for Program Counter Jump
-	assign Next_Address_postStall_F = (stall_PC) ? pcOut_F : pcOut_plus4_F;				// Stall Mux 
+	assign Next_Address_postStall_F = (stall_PC_D) ? pcOut_F : pcOut_plus4_F;				// Stall Mux 
 	assign CurrPc_Branch_F			= (BeqValid_D)? pcOut_Branch_D :  Next_Address_postStall_F;	// Branch Mux
 	assign NextAddress_F			= (Jump_D)? CurrPc_Jump_D : CurrPc_Branch_F;				// Jump Mux
 	
 	
 	
-	//assign Next_Address_postStall_F = (stall_PC) ? pcOut_F : NextAddress_F;		
+	//assign Next_Address_postStall_F = (stall_PC_D) ? pcOut_F : NextAddress_F;		
 
 	// ------------------------------------------------------
 	// Jump Address Generation
@@ -396,13 +430,15 @@ module MIPS_core (
 		.alu_control(alu_control_D), 
 		.zero_X(zero_X),
 		.Instruction_Flush(Instruction_Flush),
+		.stall_PC(stall_PC_D),
+		.Immediate_Instruction(Immediate_Instruction_D),
 		.RegDst(RegDst_D), 
 		.Branch(Branch_D), 
 		.MemRead(MemRead_D), 
 		.MemToReg(MemToReg_D), 
-		.MemWrite(MemWrite_D), 
+		.MemWriteOut(MemWrite_D), 
 		.ALUSrc(ALUSrc_D), 
-		.RegWrite(RegWrite_D), 
+		.RegWriteOut(RegWrite_D), 
 		.Jump(Jump_D),
 		.BeqValid_X(BeqValid_X),
 		.instr_pnem_D(instr_pnem_D),
@@ -430,6 +466,8 @@ module MIPS_core (
 	assign muxWriteReg_X_after_MULT_W	= (mult_done_W)? mult_address : muxWriteReg_W;
 	assign muxMemToReg_after_MULT_W = (mult_done_W)? mult_lower_W : muxMemToReg_W;
 
+	logic RegWrite_wo_stall;
+	assign RegWrite_wo_stall = (RegWrite_W & ~stall_PC_W);
 	
 	RegBank #(
     	.REG_FILE_DEPTH(32)
@@ -439,12 +477,13 @@ module MIPS_core (
 		.reg_file_rd_addr_1(Instruction_D[25:21]),	//Register is read in D   
 		.reg_file_rd_addr_2(Instruction_D[20:16]),	//Register is read in D   
 		.reg_file_wr_addr(muxWriteReg_X_after_MULT_W),	//Register is written in WB  
-		.reg_file_write(RegWrite_W | mult_done_W),	//Register is written in WB 
+		.reg_file_write(RegWrite_wo_stall | mult_done_W),	//Register is written in WB 
 		.reg_file_wr_data(muxMemToReg_after_MULT_W),	//Register is written in WB  
 		.reg_file_rd_data_1(ReadData1_D),	//Register is read in D  
 		.reg_file_rd_data_2(ReadData2_D)		//Register is read in D  
 	);
 	
+
 	signExtend signExtend(
 		.in16(Instruction_D[15:0]), 
 		.out32(signExt_D)
@@ -452,18 +491,21 @@ module MIPS_core (
 	
 	ALU ALU(
 		.alu_src_a(ReadData1_toAluMux_X),   // DATA INPUT A TO ALU --> COMES FROM DATA_FWD UNIT
-		.alu_src_b(muxALUSrc_X), 
+		.alu_src_b(muxALUSrc_X), 			// DATA INPUT B TO ALU --> MUXED FROM DATA_FWD UNIT WITH IMMEDIATE
 		.alu_ctrl(alu_control_X), 
 		.alu_result(AddressData_X), 
 		.alu_zero(zero_X)
 	);
+
+	logic data_mem_wr_addr_val_M_wo_stall;
+	assign data_mem_wr_addr_val_M_wo_stall = (data_mem_wr_addr_val_M & ~stall_PC_M);	
 	
 	DataMemory #(
     .DATA_MEM_DEPTH(`DATA_MEM_DEPTH)
 	) DataMemory (
 		.clk(clk), 
 		.rst(rst), 
-		.MemWrite(data_mem_wr_addr_val_M), //MemWrite from memory controller
+		.MemWrite(data_mem_wr_addr_val_M_wo_stall), //MemWrite from memory controller
 		//.MemRead(MemRead), 
 		.Address(data_mem_wr_addr_M[$clog2(`DATA_MEM_DEPTH) - 1:0]), 
 		.WriteData(ReadData2_toAluMux_M), 	// DATA WRITTEN TO MEMORY --> ReadData2 from the register COMMING FROM DATA FWD
@@ -478,7 +520,7 @@ module MIPS_core (
 		.clk(clk),
 		.rst(rst),
 		.rs1_e(Instruction_X[25:21]),
-		.rs2_e(Instruction_X[20:16]),
+		.rs2_e(Instruction_rs2_X),
 		.rsd_e(muxWriteReg_X),
 		.rsd_m(muxWriteReg_M),
 		.rsd_w(muxWriteReg_W),
@@ -545,7 +587,7 @@ mips_4st_pipe_mult mips_4st_pipe_mult (
 	.start(mult_start_X),
 	.done(mult_done_W),	// Means Write to the MULT REGISTERS
 	.src_a(ReadData1_toAluMux_X),
-	.src_b(muxALUSrc_X),
+	.src_b(ReadData2_toAluMux_X),
 	.mult_lower(mult_lower_W)
 );
 
@@ -561,7 +603,7 @@ mips_stall_generator mips_stall_generator (
 	.reg_dest_addr_mult(mult_address),
 	.RegWrite_D(RegWrite_D),
 	.instr_pnem_D(instr_pnem_D),
-	.stall(stall_PC)
+	.stall(stall_PC_D)
 );
 
 

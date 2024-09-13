@@ -172,18 +172,21 @@ add wave -noupdate -divider DataMem
 add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/DataMemory/Address
 add wave -noupdate /MIPS_tb_HW/uut/Instruction_Flush
 add wave -noupdate /MIPS_tb_HW/uut/instr_pnem_D
-add wave -noupdate /MIPS_tb_HW/uut/instr_pnem_M
 add wave -noupdate /MIPS_tb_HW/uut/instr_pnem_W
 add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/ReadDataMem_M
 add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/DataMemory/ReadData
 add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/DataMemory/Address_allign
 add wave -noupdate /MIPS_tb_HW/uut/MemWrite_D
 add wave -noupdate /MIPS_tb_HW/uut/MemWrite_X
-add wave -noupdate /MIPS_tb_HW/uut/MemWrite_M
-add wave -noupdate /MIPS_tb_HW/uut/DataMemory/MemWrite
+add wave -noupdate /MIPS_tb_HW/uut/MemWrite_W
+add wave -noupdate /MIPS_tb_HW/uut/instr_pnem_M
 add wave -noupdate /MIPS_tb_HW/uut/ReadData1_toAluMux_X
 add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/ReadData2_toAluMux_X
 add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/ReadData2_toAluMux_M
+add wave -noupdate /MIPS_tb_HW/uut/DataMemory/MemWrite
+add wave -noupdate /MIPS_tb_HW/uut/data_mem_wr_addr_val_M
+add wave -noupdate /MIPS_tb_HW/uut/data_mem_wr_addr_val_M_wo_stall
+add wave -noupdate /MIPS_tb_HW/uut/MemWrite_M
 add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/DataMemory/WriteData
 add wave -noupdate /MIPS_tb_HW/uut/DataMemory/error_addr
 add wave -noupdate -radix hexadecimal {/MIPS_tb_HW/uut/DataMemory/data_mem_ff[0]}
@@ -233,60 +236,30 @@ add wave -noupdate /MIPS_tb_HW/uut/mips_data_fwd/reg_write_hzd_free_w_plus1
 add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/mips_data_fwd/rsd_w
 add wave -noupdate /MIPS_tb_HW/uut/mips_data_fwd/reg_write_m
 add wave -noupdate /MIPS_tb_HW/uut/mips_data_fwd/reg_write_w
-add wave -noupdate /MIPS_tb_HW/uut/mips_data_fwd/reg_write_w_plus1
 add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/mips_data_fwd/rsd_m
 add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/mips_data_fwd/rsd_w_plus1
+add wave -noupdate /MIPS_tb_HW/uut/instr_pnem_M
 add wave -noupdate -divider mult
-add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/ReadData1_toAluMux_X
-add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/ReadData2_toAluMux_M
-add wave -noupdate -color Gold /MIPS_tb_HW/uut/mips_4st_pipe_mult/start
 add wave -noupdate /MIPS_tb_HW/uut/mips_4st_pipe_mult/clk
+add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/mult_lower_W
+add wave -noupdate -color Gold /MIPS_tb_HW/uut/mips_4st_pipe_mult/start
 add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/mips_4st_pipe_mult/src_a
 add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/mips_4st_pipe_mult/src_b
-add wave -noupdate /MIPS_tb_HW/uut/mips_4st_pipe_mult/in_prog_P1
-add wave -noupdate /MIPS_tb_HW/uut/mips_4st_pipe_mult/in_prog_P2
-add wave -noupdate /MIPS_tb_HW/uut/mips_4st_pipe_mult/in_prog_P3
-add wave -noupdate /MIPS_tb_HW/uut/mips_4st_pipe_mult/in_prog_W
-add wave -noupdate /MIPS_tb_HW/uut/mips_4st_pipe_mult/mult_higher
 add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/mips_4st_pipe_mult/mult_internal_P0
 add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/mips_4st_pipe_mult/mult_internal_P1
 add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/mips_4st_pipe_mult/mult_internal_P2
 add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/mips_4st_pipe_mult/mult_internal_P3
 add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/mips_4st_pipe_mult/mult_internal_W
-add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/mips_4st_pipe_mult/mult_lower
-add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/mips_4st_pipe_mult/rst
+add wave -noupdate -color Gold -radix hexadecimal /MIPS_tb_HW/uut/mips_4st_pipe_mult/mult_higher
+add wave -noupdate /MIPS_tb_HW/uut/mips_stall_generator/src_b_D_P2
+add wave -noupdate -color Gold -radix hexadecimal /MIPS_tb_HW/uut/mips_4st_pipe_mult/mult_lower
 add wave -noupdate /MIPS_tb_HW/uut/mips_4st_pipe_mult/done
 add wave -noupdate /MIPS_tb_HW/uut/mult_done_W
-add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/mult_lower_W
 add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/muxMemToReg_after_MULT_W
 add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/muxWriteReg_X_after_MULT_W
 add wave -noupdate -divider STALL
-add wave -noupdate -radix hexadecimal {/MIPS_tb_HW/uut/RegBank/reg_file_ff[31]}
-add wave -noupdate -radix hexadecimal {/MIPS_tb_HW/uut/RegBank/reg_file_ff[6]}
-add wave -noupdate -radix hexadecimal {/MIPS_tb_HW/uut/RegBank/reg_file_ff[5]}
-add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/mips_stall_generator/reg_dest_addr_adapted_P0
-add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/mips_stall_generator/reg_dest_addr_adapted_P1
-add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/mips_stall_generator/reg_dest_addr_adapted_P2
-add wave -noupdate /MIPS_tb_HW/uut/mips_stall_generator/clk
 add wave -noupdate /MIPS_tb_HW/uut/instr_pnem_D
-add wave -noupdate -radix hexadecimal /MIPS_tb_HW/uut/mips_stall_generator/reg_dest_addr_D
-add wave -noupdate -radix unsigned /MIPS_tb_HW/uut/mips_stall_generator/reg_dest_addr_mult
-add wave -noupdate -color Gray50 -radix unsigned /MIPS_tb_HW/uut/mips_stall_generator/reg_src_a_addr_D
-add wave -noupdate -color Green -radix unsigned /MIPS_tb_HW/uut/mips_stall_generator/reg_src_a_addr_P0
-add wave -noupdate -color Green -radix unsigned /MIPS_tb_HW/uut/mips_stall_generator/reg_src_a_addr_P1
-add wave -noupdate -color Green -radix unsigned /MIPS_tb_HW/uut/mips_stall_generator/reg_src_a_addr_P2
-add wave -noupdate -color Green -radix unsigned /MIPS_tb_HW/uut/mips_stall_generator/reg_src_a_addr_P3
-add wave -noupdate -radix unsigned /MIPS_tb_HW/uut/mips_stall_generator/reg_src_a_addr_W
-add wave -noupdate -radix unsigned /MIPS_tb_HW/uut/mips_stall_generator/reg_src_a_addr_Wp1
-add wave -noupdate -color Gray55 -radix unsigned /MIPS_tb_HW/uut/mips_stall_generator/reg_src_b_addr_D
-add wave -noupdate -color Green -radix unsigned /MIPS_tb_HW/uut/mips_stall_generator/reg_src_b_addr_P0
-add wave -noupdate -color Green -radix unsigned /MIPS_tb_HW/uut/mips_stall_generator/reg_src_b_addr_P1
-add wave -noupdate -color Green -radix unsigned /MIPS_tb_HW/uut/mips_stall_generator/reg_src_b_addr_P2
-add wave -noupdate -color Green -radix unsigned /MIPS_tb_HW/uut/mips_stall_generator/reg_src_b_addr_P3
-add wave -noupdate -radix unsigned /MIPS_tb_HW/uut/mips_stall_generator/reg_src_b_addr_W
-add wave -noupdate -radix unsigned /MIPS_tb_HW/uut/mips_stall_generator/reg_src_b_addr_Wp1
 add wave -noupdate /MIPS_tb_HW/uut/mips_stall_generator/RegWrite_D
-add wave -noupdate /MIPS_tb_HW/uut/mips_stall_generator/rst
 add wave -noupdate /MIPS_tb_HW/uut/mips_stall_generator/mult_start_D
 add wave -noupdate -color Orchid /MIPS_tb_HW/uut/mips_stall_generator/mult_start_P0
 add wave -noupdate -color Orchid /MIPS_tb_HW/uut/mips_stall_generator/mult_start_P1
@@ -296,15 +269,17 @@ add wave -noupdate -color Gold /MIPS_tb_HW/uut/mips_stall_generator/stall
 add wave -noupdate -color Gold /MIPS_tb_HW/uut/mips_stall_generator/write_port_stall
 add wave -noupdate -color Gold /MIPS_tb_HW/uut/mips_stall_generator/register_dest_stall
 add wave -noupdate -color Gold /MIPS_tb_HW/uut/mips_stall_generator/register_stall
-add wave -noupdate /MIPS_tb_HW/uut/mips_stall_generator/src_a_D_P0
-add wave -noupdate /MIPS_tb_HW/uut/mips_stall_generator/src_a_D_P1
-add wave -noupdate /MIPS_tb_HW/uut/mips_stall_generator/src_a_D_P2
-add wave -noupdate /MIPS_tb_HW/uut/mips_stall_generator/src_b_D_P0
-add wave -noupdate /MIPS_tb_HW/uut/mips_stall_generator/src_b_D_P1
-add wave -noupdate /MIPS_tb_HW/uut/mips_stall_generator/src_b_D_P2
+add wave -noupdate -radix hexadecimal {/MIPS_tb_HW/uut/DataMemory/data_mem_ff[1]}
+add wave -noupdate -radix hexadecimal {/MIPS_tb_HW/uut/RegBank/reg_file_ff[31]}
+add wave -noupdate -radix hexadecimal {/MIPS_tb_HW/uut/RegBank/reg_file_ff[1]}
+add wave -noupdate -radix hexadecimal {/MIPS_tb_HW/uut/RegBank/reg_file_ff[2]}
+add wave -noupdate -radix hexadecimal {/MIPS_tb_HW/uut/RegBank/reg_file_ff[3]}
+add wave -noupdate -radix hexadecimal {/MIPS_tb_HW/uut/RegBank/reg_file_ff[5]}
+add wave -noupdate -radix hexadecimal {/MIPS_tb_HW/uut/RegBank/reg_file_ff[6]}
+add wave -noupdate -radix hexadecimal {/MIPS_tb_HW/uut/RegBank/reg_file_ff[28]}
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {534 ps} 0} {{Cursor 2} {782 ps} 0} {{Cursor 3} {565 ps} 0} {{Cursor 4} {265 ps} 0}
-quietly wave cursor active 4
+WaveRestoreCursors {{Cursor 1} {797 ps} 0}
+quietly wave cursor active 1
 configure wave -namecolwidth 273
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
@@ -319,4 +294,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {776 ps} {907 ps}
+WaveRestoreZoom {786 ps} {906 ps}

@@ -72,15 +72,21 @@ module MIPS_tb_HW ();
   uut.InstructionMemory.regData[32] = 32'h00000000;
   uut.InstructionMemory.regData[33] = 32'h00000000;
   uut.InstructionMemory.regData[34] = 32'h00000000;
-  uut.InstructionMemory.regData[35] = 32'h10000005;
-  uut.InstructionMemory.regData[36] = 32'h005f0018;
-  uut.InstructionMemory.regData[37] = 32'h00210820;
-  uut.InstructionMemory.regData[38] = 32'h00210820;
-  uut.InstructionMemory.regData[39] = 32'h00210820;
+  uut.InstructionMemory.regData[35] = 32'h8f810004;
+  uut.InstructionMemory.regData[36] = 32'h00240018;
+  uut.InstructionMemory.regData[37] = 32'haf9f0004;
+  uut.InstructionMemory.regData[38] = 32'h10000005;
+  uut.InstructionMemory.regData[39] = 32'h005f0018;
   uut.InstructionMemory.regData[40] = 32'h00210820;
-  uut.InstructionMemory.regData[41] = 32'h20420001;
-  uut.InstructionMemory.regData[42] = 32'h00000000;
-  uut.InstructionMemory.regData[43] = 32'h08100029;
+  uut.InstructionMemory.regData[41] = 32'h00210820;
+  uut.InstructionMemory.regData[42] = 32'h00210820;
+  uut.InstructionMemory.regData[43] = 32'h00210820;
+  uut.InstructionMemory.regData[44] = 32'h20420001;
+  uut.InstructionMemory.regData[45] = 32'h00000000;
+  uut.InstructionMemory.regData[46] = 32'h0810002c;
+  uut.InstructionMemory.regData[47] = 32'h0;
+
+
   // ---------- MULTIPLY PROGRAM ----------------
 
 
@@ -103,13 +109,45 @@ module MIPS_tb_HW ();
   // uut.InstructionMemory.regData[14] = 32'h0;
   // uut.InstructionMemory.regData[15] = 32'h0;
 
-
-
-
-
-
   // -------- LOWEST VALUE ---------------------------
 
+
+  // -------- FIRST ALGORITHM ---------------------------
+  // uut.InstructionMemory.regData[0]  = 0;  
+  // uut.InstructionMemory.regData[1]  = 32'h8c200000;
+  // uut.InstructionMemory.regData[2]  = 32'h8c220020;
+  // uut.InstructionMemory.regData[3]  = 32'h8c240024;
+  // uut.InstructionMemory.regData[4]  = 32'h00441020;
+  // uut.InstructionMemory.regData[5]  = 32'h00441824;
+  // uut.InstructionMemory.regData[6]  = 32'h8c250028;
+  // uut.InstructionMemory.regData[7]  = 32'h00a03825;
+  // uut.InstructionMemory.regData[8]  = 32'h8c260008;
+  // uut.InstructionMemory.regData[9]  = 32'h00e63825;
+  // uut.InstructionMemory.regData[10] = 32'h0007502a;
+  // uut.InstructionMemory.regData[11] = 32'h00e0582a;
+  // uut.InstructionMemory.regData[12] = 32'h201fffff;
+  // uut.InstructionMemory.regData[13] = 32'h10e00003;
+  // uut.InstructionMemory.regData[14] = 32'h08100010;
+  // uut.InstructionMemory.regData[15] = 32'h1000ffff;
+  // uut.InstructionMemory.regData[16] = 32'h0810000f;
+  // uut.InstructionMemory.regData[17] = 32'h20000001;
+
+  // -------- FIRST ALGORITHM ---------------------------
+
+
+
+
+
+
+
+  // --- MIKE's RANDOM TESTS
+  // uut.InstructionMemory.regData[0]  = 0;  
+  // uut.InstructionMemory.regData[1]  = 32'h8ff40000;
+  // uut.InstructionMemory.regData[2]  = 32'h0294a820;
+  // uut.InstructionMemory.regData[3]  = 32'h0294b020;
+  // uut.InstructionMemory.regData[4]  = 32'h0294b820;
+  // uut.InstructionMemory.regData[5]  = 32'h00000000;
+  // uut.InstructionMemory.regData[6]  = 32'h00000000;
 
     #40;
 
@@ -132,7 +170,8 @@ module MIPS_tb_HW ();
   // REGISTER PRELOAD
 
   uut.RegBank.reg_file_ff[1] = 31'h10010000;
-  
+  uut.RegBank.reg_file_ff[28] = 31'h10010000;
+
   rst = 0;
 
 

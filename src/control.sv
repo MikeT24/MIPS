@@ -10,15 +10,16 @@ module control (
 	input logic [DATA_32_W-1:0] Instruction_D,
 	input logic zero_X,
 	input logic Instruction_Flush,
+	input logic stall_PC,
 	output logic Immediate_Instruction,
 	output t_alu_opcode alu_control,
 	output logic RegDst,
 	output logic Branch,
 	output logic MemRead,
 	output logic MemToReg,
-	output logic MemWrite,
+	output logic MemWriteOut,
 	output logic ALUSrc,
-	output logic RegWrite,
+	output logic RegWriteOut,
 	output logic Jump,
 	output logic BeqValid_X,
 	output t_instr_pnmen instr_pnem_D,
@@ -28,7 +29,11 @@ module control (
 );
 
 // Pnmemonic for the instruction
+logic RegWrite;
+logic MemWrite;
 
+assign RegWriteOut = RegWrite ;
+assign MemWriteOut = MemWrite ;
 
 logic Branch_X;
 // Branching logic 
